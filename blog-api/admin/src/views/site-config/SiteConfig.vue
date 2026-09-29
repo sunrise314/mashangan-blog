@@ -34,12 +34,12 @@
       </div>
     </div>
 
-    <div class="card">
-      <h3 style="margin-bottom:4px">AI 配图流水线密钥</h3>
-      <p style="color:#888;font-size:13px;margin-bottom:12px">留空则对应功能不可用。修改后立即生效，无需重启。</p>
-      <div class="form-row"><label>智谱 GLM Key（文章解析）</label><input type="password" v-model="form.studioZhipuKey" placeholder="open.bigmodel.cn"></div>
-      <div class="form-row"><label>Pexels Key（图库检索）</label><input type="password" v-model="form.studioPexelsKey" placeholder="api.pexels.com"></div>
-      <div class="form-row"><label>SiliconFlow Key（AI 生图）</label><input type="password" v-model="form.studioSiliconflowKey" placeholder="api.siliconflow.cn"></div>
+    <div class="card" style="background:#f8fafc;border-left:3px solid #94a3b8">
+      <h3 style="margin-bottom:4px">AI 配图提供商</h3>
+      <p style="color:#64748b;font-size:13px;margin-bottom:0">
+        API Key 配置、连通性测试与额度查询已移至
+        <RouterLink to="/admin/studio-config" style="color:#2563eb;font-weight:500">AI 提供商配置</RouterLink> 页面。
+      </p>
     </div>
   </LayoutShell>
 </template>

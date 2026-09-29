@@ -18,6 +18,7 @@ const router = useRouter()
 
 const navItems = [
   { path: '/admin/studio', label: 'AI 一键发文' },
+  { path: '/admin/studio-config', label: 'AI 提供商配置' },
   { path: '/admin/posts', label: '文章' },
   { path: '/admin/categories', label: '分类' },
   { path: '/admin/tags', label: '标签' },

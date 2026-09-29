@@ -16,6 +16,7 @@ const routes = [
   { path: '/admin/site-config', component: () => import('../views/site-config/SiteConfig.vue') },
   { path: '/admin/social-links', component: () => import('../views/social-links/SocialLinkList.vue') },
   { path: '/admin/studio', component: () => import('../views/studio/StudioSubmit.vue') },
+  { path: '/admin/studio-config', component: () => import('../views/studio/AiConfig.vue') },
 ]
 
 const router = createRouter({

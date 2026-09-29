@@ -6,6 +6,9 @@ node_modules/
 .env
 .env.*
 !.env.example
+*.tsbuildinfo
+*.d.ts
+!blog-api/admin/src/**/*.d.ts
 
 # ==== Java / Gradle (blog-api) ====
 .gradle/

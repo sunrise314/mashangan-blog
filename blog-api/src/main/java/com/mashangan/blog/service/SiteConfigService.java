@@ -42,9 +42,9 @@ public class SiteConfigService {
         if (patch.getHomepageTitle() != null) c.setHomepageTitle(patch.getHomepageTitle());
         if (patch.getHomepageSubtitle() != null) c.setHomepageSubtitle(patch.getHomepageSubtitle());
         if (patch.getAnalyticsHeadCode() != null) c.setAnalyticsHeadCode(patch.getAnalyticsHeadCode());
-        if (patch.getStudioZhipuKey() != null) c.setStudioZhipuKey(patch.getStudioZhipuKey());
-        if (patch.getStudioPexelsKey() != null) c.setStudioPexelsKey(patch.getStudioPexelsKey());
-        if (patch.getStudioSiliconflowKey() != null) c.setStudioSiliconflowKey(patch.getStudioSiliconflowKey());
+        if (patch.getStudioZhipuKey() != null) c.setStudioZhipuKey(patch.getStudioZhipuKey().isBlank() ? null : patch.getStudioZhipuKey());
+        if (patch.getStudioPexelsKey() != null) c.setStudioPexelsKey(patch.getStudioPexelsKey().isBlank() ? null : patch.getStudioPexelsKey());
+        if (patch.getStudioSiliconflowKey() != null) c.setStudioSiliconflowKey(patch.getStudioSiliconflowKey().isBlank() ? null : patch.getStudioSiliconflowKey());
         if (patch.getPlanetQrcodeUrl() != null) c.setPlanetQrcodeUrl(patch.getPlanetQrcodeUrl());
         if (patch.getPlanetIntroHtml() != null) c.setPlanetIntroHtml(patch.getPlanetIntroHtml());
         if (patch.getPlanetCtaText() != null) c.setPlanetCtaText(patch.getPlanetCtaText());

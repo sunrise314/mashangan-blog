@@ -1,0 +1,1 @@
+import{M as a,N as s,O as r,r as u,P as l}from"./index-Bm2hZtu1.js";const e=u(l());function i(){return{token:e,isLoggedIn:()=>!!e.value,login:async(n,t)=>{const o=await s(n,t);r(o.token),e.value=o.token},logout:()=>{a(),e.value=""}}}export{i as u};
