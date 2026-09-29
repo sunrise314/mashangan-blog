@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #0562a9;
+  --color-primary-hover: #044f87;
+  --color-primary-light: #4d9bd8;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background-color: #f5f6f7;
+  color: #1e293b;
+}
+
+/* 状态徽章：已完结（绿渐变）/ 连载中（紫渐变） */
+.badge-complete {
+  background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+  color: #fff;
+}
+.badge-updating {
+  background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%);
+  color: #fff;
+}
+
+/* Markdown 内容样式 —— 参考犬小哈正文排版 */
+.prose-halo {
+  color: #334155;
+  line-height: 1.75;
+  font-size: 16px;
+  word-break: break-word;
+}
+.prose-halo h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 1.6em 0 0.8em;
+  color: #0f172a;
+}
+.prose-halo h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 1.6em 0 0.8em;
+  padding-left: 12px;
+  border-left: 4px solid var(--color-primary);
+  color: #0f172a;
+}
+.prose-halo h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 1.4em 0 0.6em;
+  color: #0f172a;
+}
+.prose-halo h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 1.2em 0 0.5em;
+  color: #0f172a;
+}
+.prose-halo p {
+  margin: 1em 0;
+}
+.prose-halo ul {
+  list-style: disc;
+  padding-left: 1.6em;
+  margin: 1em 0;
+}
+.prose-halo ol {
+  list-style: decimal;
+  padding-left: 1.6em;
+  margin: 1em 0;
+}
+.prose-halo li {
+  margin: 0.3em 0;
+}
+.prose-halo blockquote {
+  border-left: 4px solid var(--color-primary-light);
+  background: #eff6ff;
+  padding: 0.6em 1em;
+  margin: 1em 0;
+  color: #475569;
+  border-radius: 0 6px 6px 0;
+}
+.prose-halo code {
+  background: #f1f5f9;
+  color: #db2777;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+.prose-halo pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 1em 0;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.prose-halo pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+.prose-halo a {
+  color: var(--color-primary);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+.prose-halo a:hover {
+  border-bottom-color: var(--color-primary);
+}
+.prose-halo img {
+  border-radius: 8px;
+  margin: 1em 0;
+  max-width: 100%;
+  height: auto;
+}
+.prose-halo table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 14px;
+}
+.prose-halo th {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+}
+.prose-halo td {
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
+}
+.prose-halo hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 2em 0;
+}
+
+/* TOC 锚点偏移，避免被固定导航遮挡 */
+.prose-halo [id] {
+  scroll-margin-top: 80px;
+}

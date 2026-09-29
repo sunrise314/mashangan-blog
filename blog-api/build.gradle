@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    alias(libs.plugins.springBoot)
+    alias(libs.plugins.springDependencyManagement)
+}
+
+group = "com.mashangan"
+version = "0.0.1-SNAPSHOT"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(libs.springWeb)
+    implementation(libs.springValidation)
+    implementation(libs.springSecurity)
+    implementation(libs.mybatisPlus)
+    implementation(libs.mybatisPlusJsqlparser)
+    implementation(libs.flywayCore)
+    implementation(libs.flywayPostgresql)
+    implementation(libs.postgresql)
+    implementation(libs.jjwtApi)
+    implementation(libs.commonmark)
+    runtimeOnly(libs.jjwtImpl)
+    runtimeOnly(libs.jjwtJackson)
+
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+
+    testImplementation(libs.springTest)
+    testImplementation(libs.testcontainersJunitJupiter)
+    testImplementation(libs.testcontainersPostgresql)
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}

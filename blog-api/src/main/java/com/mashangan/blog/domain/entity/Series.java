@@ -1,0 +1,36 @@
+package com.mashangan.blog.domain.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
+import java.time.OffsetDateTime;
+
+@Data
+@TableName("series")
+public class Series {
+
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    private String slug;
+
+    private String title;
+
+    private String cover;
+
+    private String description;
+
+    /** updating | complete */
+    private String status;
+
+    /** 免费章节数，0 表示全部免费 */
+    private Integer freeChapterCount;
+
+    private Integer sortOrder;
+
+    private OffsetDateTime createdAt;
+
+    private OffsetDateTime updatedAt;
+}

@@ -1,0 +1,33 @@
+# ==== Node / Nuxt ====
+node_modules/
+.nuxt/
+.output/
+*.log
+.env
+.env.*
+!.env.example
+
+# ==== Java / Gradle (blog-api) ====
+.gradle/
+build/
+out/
+!blog-api/gradle/wrapper/gradle-wrapper.jar
+*.iml
+local-attachments/
+blog-api/admin/node_modules/
+
+# ==== IDE ====
+.idea/
+.vscode/
+.trae/
+
+# ==== Ops scripts (contain server credentials — NEVER commit) ====
+_md2html/
+
+# ==== OS ====
+.DS_Store
+Thumbs.db
+
+# ==== Trae docs / backups (may contain sensitive content) ====
+*.dump
+*.tgz

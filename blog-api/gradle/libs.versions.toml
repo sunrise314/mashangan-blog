@@ -1,0 +1,28 @@
+[versions]
+springBoot = "3.3.5"
+dependencyManagement = "1.1.6"
+mybatisPlus = "3.5.9"
+jjwt = "0.12.6"
+commonmark = "0.22.0"
+
+[libraries]
+springWeb = { module = "org.springframework.boot:spring-boot-starter-web" }
+springValidation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+springSecurity = { module = "org.springframework.boot:spring-boot-starter-security" }
+mybatisPlus = { module = "com.baomidou:mybatis-plus-spring-boot3-starter", version.ref = "mybatisPlus" }
+mybatisPlusJsqlparser = { module = "com.baomidou:mybatis-plus-jsqlparser", version.ref = "mybatisPlus" }
+postgresql = { module = "org.postgresql:postgresql" }
+flywayCore = { module = "org.flywaydb:flyway-core" }
+flywayPostgresql = { module = "org.flywaydb:flyway-database-postgresql" }
+jjwtApi = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwtImpl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwtJackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+commonmark = { module = "org.commonmark:commonmark", version.ref = "commonmark" }
+lombok = { module = "org.projectlombok:lombok" }
+springTest = { module = "org.springframework.boot:spring-boot-starter-test" }
+testcontainersJunitJupiter = { module = "org.testcontainers:junit-jupiter" }
+testcontainersPostgresql = { module = "org.testcontainers:postgresql" }
+
+[plugins]
+springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
+springDependencyManagement = { id = "io.spring.dependency-management", version.ref = "dependencyManagement" }
