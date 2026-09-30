@@ -1,4 +1,8 @@
 /**
+ * 【已废弃 DEPRECATED 2026-09-30】旧 Halo 容器已从服务器删除，本文件所有接口均不可用。
+ * /studio 配图流水线 v1 建文链路随之失效 —— 请勿调用或扩展本文件；
+ * 流水线 v2 应改直连 blog-api（附件上传端点 + md→html 渲染），见 AGENTS.md。
+ *
  * Halo console API 写链路封装（/studio 配图流水线专用）。
  *
  * 链路已于 2026-09-16 全程实测验证（_md2html/probe_halo_v2.py）：

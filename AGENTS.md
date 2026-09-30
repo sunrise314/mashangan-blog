@@ -1,6 +1,6 @@
 # mashangan — Repository Guidelines
 
-This workspace hosts the **mashangan.com blog**. Legacy Halo CMS was retired 2026-09-27; its source is gone from this repo — do not reference or recreate it.
+This workspace hosts the **mashangan.com blog**. Legacy Halo CMS was retired 2026-09-27; its source is gone from this repo — do not reference or recreate it. The old `halo` container was **deleted from the server on 2026-09-30** (compose service kept under `profiles: ["legacy"]`, image + data preserved). The `/studio` 配图流水线 v1 (via `blog-web/server/utils/halo.ts`) is therefore dead — do not invoke or extend it; new-article publishing goes through direct SQL scripts in `_md2html/` until pipeline v2 (blog-api direct) exists.
 
 ## Modules
 
