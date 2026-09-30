@@ -255,8 +255,10 @@ async function onMdFile(file?: File) {
     const fmTitle = text.match(/^---\r?\n[\s\S]*?\r?\n---/)?.[0]?.match(/^title:\s*(.+)$/m)?.[1]?.trim().replace(/^["']|["']$/g, '')
     const heading = text.match(/^#\s+(.+)$/m)?.[1]?.trim()
     upload.value.title = fmTitle || heading || nameBase || '未命名导入'
+    // slug 仅保留 ASCII 字母数字/下划线/连字符：中文等非 ASCII 文件名
+    // 会全部被过滤掉，从而回退为 md-{时间戳}，避免产生中文 slug
     upload.value.slug =
-      nameBase.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '') ||
+      nameBase.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '').replace(/^-+|-+$/g, '') ||
       `md-${Date.now()}`
   } catch (err: any) {
     upload.value.error = '读取文件失败：' + (err?.message || err)
