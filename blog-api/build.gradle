@@ -37,6 +37,7 @@ dependencies {
     testImplementation(libs.springTest)
     testImplementation(libs.testcontainersJunitJupiter)
     testImplementation(libs.testcontainersPostgresql)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)
 }
