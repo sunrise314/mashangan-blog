@@ -37,10 +37,14 @@ export default defineNuxtConfig({
     routeRules: {
       // SSR + 增量静态再验证：回源失败时仍可返回旧缓存，避免 Halo 抖动导致全站 500
       "/": { swr: 60 },
+      // 注意：swr 会强制开启 payload 外置提取（_PAYLOAD_EXTRACTION = isr || cache）。
+      // Nuxt 对非 ASCII 路径（中文 slug）会把已编码的 route.path 再次 encodeURI，
+      // 生成的 _payload.json 地址双重编码（%25E5…）必然 404，客户端水合采纳该
+      // 错误直接渲染 404 页。因此凡 URL 含文章/分类 slug 的路由一律不开 swr，
+      // 数据改为内联在 HTML 中随 SSR 返回（这些路由也不再依赖缓存兜底）。
       "/archives": { swr: 60 },
-      // 文章页：SWR 兜底（回源失败时返回旧缓存），短 TTL 配合主动 purge 机制
-      "/archives/**": { swr: 60 },
-      "/categories/**": { swr: 60 },
+      "/categories/**": {},
+      "/archives/**": {},
       "/java-interview": { swr: 120 },
       "/java-interview/**": { swr: 300 },
       "/tools": { swr: 300 },
