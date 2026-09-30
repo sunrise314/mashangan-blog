@@ -1,1 +1,0 @@
-import{C as i,I as t}from"./index-CIa9Kiva.js";const e={list:()=>t("GET","/api/admin/attachments"),delete:a=>t("DELETE",`/api/admin/attachments/${a}`),upload:a=>i("/api/admin/attachments/upload",a)};export{e as a};

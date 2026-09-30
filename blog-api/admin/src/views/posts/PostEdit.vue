@@ -72,7 +72,7 @@
                 <button class="btn btn-sm btn-ghost" v-if="form.cover" @click="clearCover">移除</button>
               </div>
               <input v-model="form.cover" placeholder="或粘贴图片 URL https://…" class="cover-url-input" @input="coverBroken=false" />
-              <div class="cover-hint">编辑器外按 Ctrl+V 即可把剪贴板图片设为封面</div>
+              <div class="cover-hint">编辑器外按 Ctrl+V 即可把剪贴板图片设为封面；不设置时保存后自动采用文章第一张图</div>
               <input ref="coverFile" type="file" accept="image/*" style="display:none" @change="onCoverUpload" />
             </div>
           </div>
@@ -344,6 +344,11 @@ async function save(publish: boolean) {
   saving.value = true
   try {
     const md = htmlToMarkdown(editor.value?.getHTML() || '')
+    // 未手动设置封面时，自动取文章第一张图作为封面；全文无图则留空
+    if (!form.value.cover) {
+      const m = md.match(/!\[[^\]]*\]\(([^)\s]+)/) || md.match(/<img[^>]+src=["']([^"']+)["']/i)
+      if (m?.[1]) form.value.cover = m[1]
+    }
     const payload = {
       title: form.value.title || '无标题',
       slug: form.value.slug || form.value.title,
