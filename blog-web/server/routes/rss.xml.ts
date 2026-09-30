@@ -1,3 +1,5 @@
+import { cdnizeText } from "../../utils/cdnize";
+
 interface RssPost {
   spec: { title: string; slug: string };
   status?: { excerpt?: string; publishTime?: string };
@@ -35,7 +37,9 @@ export default defineEventHandler(async (event) => {
         `      <title>${escapeXml(p.spec.title)}</title>`,
         `      <link>${escapeXml(link)}</link>`,
         `      <guid isPermaLink="true">${escapeXml(link)}</guid>`,
-        `      <description>${escapeXml(p.status?.excerpt || "")}</description>`,
+        `      <description>${escapeXml(
+        cdnizeText(p.status?.excerpt || "", (process.env.IMG_CDN_BASE || "").replace(/\/$/, "")),
+      )}</description>`,
         pubDate ? `      <pubDate>${pubDate}</pubDate>` : "",
         "    </item>",
       ]

@@ -11,6 +11,8 @@ export default defineNuxtConfig({
       siteLogo: process.env.SITE_LOGO || "",
       // 前台对外可访问的站点根地址，用于生成 sitemap/RSS 绝对链接（SITE_URL 覆盖）
       siteUrl: process.env.SITE_URL || "https://www.mashangan.com",
+      // 站内图片 CDN 前缀（IMG_CDN_BASE，如 https://cdn.mashangan.com；为空则不改写）
+      imgCdnBase: process.env.IMG_CDN_BASE || "",
     },
   },
   app: {

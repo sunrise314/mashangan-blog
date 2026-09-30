@@ -4,6 +4,7 @@
  * 60s SWR 缓存：保存后最多 60s 生效；改代码重新部署后容器重建即清缓存。
  */
 import { defineCachedEventHandler } from "#imports";
+import { cdnizeDeep } from "../../utils/cdnize";
 
 export default defineCachedEventHandler(
   async () => {
@@ -15,9 +16,11 @@ export default defineCachedEventHandler(
     if (!base) return empty;
 
     try {
-      return await $fetch(`${base}/api/public/site-config`, {
+      const data = await $fetch(`${base}/api/public/site-config`, {
         headers: { Accept: "application/json" },
       });
+      // logoUrl 等站内图片字段同样改写为 CDN（外链不受影响）
+      return cdnizeDeep(data, (process.env.IMG_CDN_BASE || "").replace(/\/$/, ""));
     } catch {
       return empty;
     }

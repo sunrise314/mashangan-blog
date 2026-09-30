@@ -26,12 +26,18 @@ export function useHaloApi() {
   // 否则浏览器跨源直连 8090 会被 CORS 拦截，SPA 导航拿不到数据（页面空白）；
   // 服务端（SSR / nitro）无跨域问题，直连 Halo 完整地址
   const base = import.meta.server ? (useRuntimeConfig().public.haloApiBase as string) : "";
+  // 图片 CDN base：服务端读容器 env；客户端读内联配置。为空则 cdnizeDeep 原样返回
+  const imgCdnBase = import.meta.server
+    ? (process.env.IMG_CDN_BASE || "").replace(/\/$/, "")
+    : ((useRuntimeConfig().public.imgCdnBase as string) || "").replace(/\/$/, "");
 
   async function apiFetch<T>(path: string, apiBase: string = CONTENT_API_BASE): Promise<T> {
     const url = `${base}${apiBase}${path}`;
-    return await $fetch<T>(url, {
+    const data = await $fetch<T>(url, {
       headers: { Accept: "application/json" },
     });
+    // 数据出口统一改写图片地址为 CDN（覆盖 SSR 与客户端 SPA 导航两条路径）
+    return cdnizeDeep(data, imgCdnBase);
   }
 
   /** 翻页拉取一个列表资源的全部页（单页 100 条），供确实需要全量数据的场景使用 */
