@@ -2,7 +2,19 @@ package com.mashangan.blog.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.mashangan.blog.domain.entity.Attachment;
+import com.mashangan.blog.domain.entity.Category;
+import com.mashangan.blog.domain.entity.Post;
+import com.mashangan.blog.domain.entity.PostRevision;
+import com.mashangan.blog.domain.entity.Series;
+import com.mashangan.blog.domain.entity.SinglePage;
+import com.mashangan.blog.domain.entity.SiteConfig;
 import com.mashangan.blog.mapper.AttachmentMapper;
+import com.mashangan.blog.mapper.CategoryMapper;
+import com.mashangan.blog.mapper.PostMapper;
+import com.mashangan.blog.mapper.PostRevisionMapper;
+import com.mashangan.blog.mapper.SeriesMapper;
+import com.mashangan.blog.mapper.SinglePageMapper;
+import com.mashangan.blog.mapper.SiteConfigMapper;
 import com.mashangan.blog.security.AdminPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -31,6 +44,12 @@ public class AttachmentService {
             "pdf", "doc", "docx", "xls", "xlsx", "zip");
 
     private final AttachmentMapper attachmentMapper;
+    private final PostMapper postMapper;
+    private final PostRevisionMapper postRevisionMapper;
+    private final SinglePageMapper singlePageMapper;
+    private final CategoryMapper categoryMapper;
+    private final SeriesMapper seriesMapper;
+    private final SiteConfigMapper siteConfigMapper;
 
     @Value("${app.attachment.dir}")
     private String attachmentDir;
@@ -111,10 +130,14 @@ public class AttachmentService {
         return attachmentMapper.selectList(new QueryWrapper<Attachment>().orderByDesc("created_at"));
     }
 
-    /** 删除附件：先删物理文件（尽力而为），再删数据库记录。 */
+    /**
+     * 删除附件：先做引用检查（被引用即 409 拒绝，fail-closed），再删物理文件（尽力而为），
+     * 最后删数据库记录。
+     */
     public void delete(Long id) {
         Attachment a = attachmentMapper.selectById(id);
         if (a == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "附件不存在");
+        assertNotReferenced(a);
         if (a.getStoragePath() != null && !a.getStoragePath().isBlank()) {
             try {
                 Path file = Path.of(attachmentDir).resolve(a.getStoragePath()).normalize();
@@ -128,6 +151,72 @@ public class AttachmentService {
             }
         }
         attachmentMapper.deleteById(id);
+    }
+
+    /**
+     * 删除前引用检查：附件 URL 以文本形式散落在文章正文/封面、单页面、分类、系列、站点配置里，
+     * 无外键可约束，删除前逐表扫描，命中即 409 拒绝并列出引用方。
+     * 匹配键取 url_path 去掉开头 "/" 后的路径（如 upload/2026/09/x.png），
+     * 相对路径与历史遗留的绝对域名（api/cdn/IP:8090）形态均可命中。
+     */
+    private void assertNotReferenced(Attachment a) {
+        String urlPath = a.getUrlPath();
+        if (urlPath == null || urlPath.isBlank()) return;
+        String suffix = urlPath.startsWith("/") ? urlPath.substring(1) : urlPath;
+        String like = likeEscape(suffix);
+        List<String> refs = new ArrayList<>();
+
+        List<Post> posts = postMapper.selectList(new QueryWrapper<Post>()
+                .select("id", "title")
+                .and(w -> w.like("content_html", like)
+                        .or().like("content_raw", like)
+                        .or().like("cover", like)));
+        for (Post p : posts) refs.add("文章《" + p.getTitle() + "》");
+
+        List<SinglePage> pages = singlePageMapper.selectList(new QueryWrapper<SinglePage>()
+                .select("id", "title")
+                .and(w -> w.like("content_html", like).or().like("content_raw", like)));
+        for (SinglePage page : pages) refs.add("页面《" + page.getTitle() + "》");
+
+        List<Category> cats = categoryMapper.selectList(new QueryWrapper<Category>()
+                .select("id", "display_name").like("cover", like));
+        for (Category c : cats) refs.add("分类「" + c.getDisplayName() + "」");
+
+        List<Series> seriesList = seriesMapper.selectList(new QueryWrapper<Series>()
+                .select("id", "title").like("cover", like));
+        for (Series s : seriesList) refs.add("系列「" + s.getTitle() + "」");
+
+        SiteConfig sc = siteConfigMapper.selectOne(new QueryWrapper<SiteConfig>()
+                .select("id", "logo_url", "favicon_url", "planet_qrcode_url", "planet_intro_html"));
+        if (sc != null) {
+            if (contains(sc.getLogoUrl(), suffix)) refs.add("站点配置 logo_url");
+            if (contains(sc.getFaviconUrl(), suffix)) refs.add("站点配置 favicon_url");
+            if (contains(sc.getPlanetQrcodeUrl(), suffix)) refs.add("站点配置 planet_qrcode_url");
+            if (contains(sc.getPlanetIntroHtml(), suffix)) refs.add("站点配置 planet_intro_html");
+        }
+
+        if (refs.isEmpty()) return;
+        Long revCount = postRevisionMapper.selectCount(new QueryWrapper<PostRevision>()
+                .and(w -> w.like("content_html", like)
+                        .or().like("content_raw", like)
+                        .or().like("cover", like)));
+
+        StringBuilder msg = new StringBuilder("该附件仍被 " + refs.size() + " 处引用，无法删除：");
+        msg.append(String.join("、", refs.subList(0, Math.min(5, refs.size()))));
+        if (refs.size() > 5) msg.append(" 等");
+        if (revCount != null && revCount > 0) {
+            msg.append("；另有 ").append(revCount).append(" 条文章修订记录含此图");
+        }
+        throw new ResponseStatusException(HttpStatus.CONFLICT, msg.toString());
+    }
+
+    private static boolean contains(String s, String suffix) {
+        return s != null && s.contains(suffix);
+    }
+
+    /** LIKE 通配符转义（PostgreSQL LIKE 默认转义符为反斜杠） */
+    private static String likeEscape(String s) {
+        return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private Long currentUserId() {

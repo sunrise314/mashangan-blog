@@ -47,9 +47,12 @@ async function onUpload(e: Event) {
 }
 
 async function doDelete(id: number) {
-  if (!confirm('删除该附件？已插入文章中的图片将失效。')) return
-  await attachmentsApi.delete(id)
-  reload()
+  if (!confirm('删除该附件？若仍被文章/页面/站点配置引用，将拒绝删除。')) return
+  error.value = ''
+  try {
+    await attachmentsApi.delete(id)
+    reload()
+  } catch (err: any) { error.value = err.message }
 }
 
 function copyUrl(u: string) {

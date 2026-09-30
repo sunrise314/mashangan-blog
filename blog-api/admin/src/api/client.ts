@@ -12,6 +12,15 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY)
 }
 
+/** 响应体是 {"message":"..."} 时提取 message，其余原样返回 */
+function parseErrorMessage(t: string): string {
+  try {
+    const j = JSON.parse(t)
+    if (j && typeof j.message === 'string' && j.message) return j.message
+  } catch { /* 非 JSON 响应体 */ }
+  return t
+}
+
 export async function api<T = any>(method: string, path: string, body?: any): Promise<T> {
   const opts: RequestInit = {
     method,
@@ -26,7 +35,7 @@ export async function api<T = any>(method: string, path: string, body?: any): Pr
   }
   if (!r.ok) {
     const t = await r.text()
-    throw new Error(t || r.statusText)
+    throw new Error(parseErrorMessage(t) || r.statusText)
   }
   const text = await r.text()
   return (text ? JSON.parse(text) : null) as T
@@ -42,7 +51,7 @@ export async function uploadFile(path: string, file: File, field = 'file'): Prom
   })
   if (!r.ok) {
     const t = await r.text()
-    throw new Error(t || r.statusText)
+    throw new Error(parseErrorMessage(t) || r.statusText)
   }
   return await r.json()
 }
