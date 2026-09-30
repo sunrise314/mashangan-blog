@@ -10,7 +10,7 @@ export default defineNuxtConfig({
       siteTitle: process.env.SITE_TITLE || "码上岸",
       siteLogo: process.env.SITE_LOGO || "",
       // 前台对外可访问的站点根地址，用于生成 sitemap/RSS 绝对链接（SITE_URL 覆盖）
-      siteUrl: process.env.SITE_URL || "http://49.235.136.65:3000",
+      siteUrl: process.env.SITE_URL || "https://www.mashangan.com",
     },
   },
   app: {
@@ -38,20 +38,15 @@ export default defineNuxtConfig({
       // SSR + 增量静态再验证：回源失败时仍可返回旧缓存，避免 Halo 抖动导致全站 500
       "/": { swr: 60 },
       "/archives": { swr: 60 },
-      "/archives/**": { swr: 3600 },
-      "/categories/**": { swr: 120 },
+      // 文章页：SWR 兜底（回源失败时返回旧缓存），短 TTL 配合主动 purge 机制
+      "/archives/**": { swr: 60 },
+      "/categories/**": { swr: 60 },
       "/java-interview": { swr: 120 },
       "/java-interview/**": { swr: 300 },
       "/tools": { swr: 300 },
       "/column": { swr: 120 },
       "/zsxq": { swr: 300 },
       "/search": { swr: 30 },
-      // 内部工具页：禁止索引
-      "/studio": { headers: { "X-Robots-Tag": "noindex, nofollow" } },
-      "/studio/**": { headers: { "X-Robots-Tag": "noindex, nofollow" } },
-      // 自建后台（访客看板）：纯客户端渲染，禁止索引
-      "/admin": { ssr: false, headers: { "X-Robots-Tag": "noindex, nofollow" } },
-      "/admin/**": { ssr: false, headers: { "X-Robots-Tag": "noindex, nofollow" } },
     },
   },
 });

@@ -54,6 +54,46 @@ export interface HaloPostDetail extends HaloPost {
     content: string;
     raw: string;
   };
+  /** 系列章节的付费墙信息（服务端下发；locked=true 时 content 已被剥离） */
+  access?: {
+    locked: boolean;
+    seriesSlug: string;
+    seriesTitle: string;
+    freeChapterCount: number;
+    chapterOrder: number;
+    totalChapters: number;
+  };
+}
+
+/** /column 项目卡片：一个系列 = 一个项目 */
+export interface SeriesCard {
+  slug: string;
+  title: string;
+  cover: string;
+  description: string;
+  status: string; // updating | complete
+  chapterCount: number;
+}
+
+export interface SeriesChapter {
+  name: string; // halo_name
+  title: string;
+  slug: string;
+  cover: string;
+  excerpt: string;
+  free: boolean;
+  order: number;
+}
+
+export interface SeriesDetail {
+  slug: string;
+  title: string;
+  cover: string;
+  description: string;
+  status: string;
+  freeChapterCount: number;
+  totalChapters: number;
+  chapters: SeriesChapter[];
 }
 
 export interface HaloPageResult<T> {

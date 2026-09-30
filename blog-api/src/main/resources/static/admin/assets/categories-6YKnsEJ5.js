@@ -1,1 +1,0 @@
-import{H as e}from"./index-Bm2hZtu1.js";const o={list:()=>e("GET","/api/admin/categories"),get:a=>e("GET",`/api/admin/categories/${a}`),create:a=>e("POST","/api/admin/categories",a),update:(a,i)=>e("PUT",`/api/admin/categories/${a}`,i),delete:a=>e("DELETE",`/api/admin/categories/${a}`)};export{o as c};

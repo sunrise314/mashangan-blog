@@ -4,9 +4,13 @@ export default defineEventHandler((event) => {
   const body = [
     "User-agent: *",
     "Allow: /",
-    "Disallow: /studio",
     "Disallow: /admin",
     "Disallow: /api",
+    "",
+    "# AI 训练爬虫：只屏蔽 Bytespider（字节，抓取最凶），放行 GPTBot / ClaudeBot / PerplexityBot 等",
+    "User-agent: Bytespider",
+    "Disallow: /",
+    "",
     `Sitemap: ${siteUrl}/sitemap.xml`,
     "",
   ].join("\n");

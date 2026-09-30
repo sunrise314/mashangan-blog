@@ -1,0 +1,6 @@
+# 使用本地预构建的 jar，跳过服务器端 Gradle 编译（部署时间 ~3 分钟）
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY blog-api-0.0.1-SNAPSHOT.jar app.jar
+EXPOSE 8090
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

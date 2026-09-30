@@ -1,5 +1,6 @@
 /**
- * 看板汇总接口：概览(PV/UV/在线) + 7 日趋势 + TOP 来源/搜索词/页面/设备/地区 + 最新访问。
+ * 看板汇总接口：概览(PV/UV/在线) + 7 日趋势 + TOP 来源/搜索词/页面/设备/地区。
+ * 最新访问已拆分到 /api/analytics/visits 分页接口。
  * 鉴权：header x-analytics-token 与环境变量 ANALYTICS_PASSWORD 一致。
  */
 export default defineEventHandler(async (event) => {
@@ -65,7 +66,6 @@ export default defineEventHandler(async (event) => {
     topOss,
     topDevices,
     topRegions,
-    recent,
   ] = await Promise.all([
     pvUv(todayStart),
     pvUv(yesterdayStart, todayStart),
@@ -78,21 +78,18 @@ export default defineEventHandler(async (event) => {
         WHERE ts >= ${weekStart}
         GROUP BY d ORDER BY d`,
     sql`
-        SELECT substring(ref FROM '://([^/]+)') AS src, count(*)::int AS c FROM visits
+        SELECT substring(ref FROM '://([^/]+)') AS k, count(*)::int AS c FROM visits
         WHERE type = 'pv' AND ts >= ${weekStart} AND ref <> ''
-        GROUP BY src ORDER BY c DESC LIMIT 10`,
+        GROUP BY k ORDER BY c DESC LIMIT 10`,
     sql`
-        SELECT kw, count(*)::int AS c FROM visits
+        SELECT kw AS k, count(*)::int AS c FROM visits
         WHERE type = 'pv' AND ts >= ${weekStart} AND kw <> ''
-        GROUP BY kw ORDER BY c DESC LIMIT 10`,
+        GROUP BY k ORDER BY c DESC LIMIT 10`,
     topBy("path"),
     topBy("browser"),
     topBy("os"),
     topBy("device"),
     topBy("region"),
-    sql`
-        SELECT ts, type, path, title, ref, kw, dur, ip, region, isp, browser, os, device, vid
-        FROM visits ORDER BY id DESC LIMIT 50`,
   ]);
 
   return {
@@ -108,6 +105,5 @@ export default defineEventHandler(async (event) => {
     topOss,
     topDevices,
     topRegions,
-    recent,
   };
 });

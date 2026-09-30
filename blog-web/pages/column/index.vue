@@ -4,39 +4,23 @@
     <header class="column-hero">
       <div class="column-hero-inner">
         <h1>项目实战</h1>
-        <p>{{ category?.spec.description || "企业级项目从 0 到 1 实战讲解，渐进式拆解，保姆级带练。" }}</p>
+        <p>企业级项目从 0 到 1 实战讲解，渐进式拆解，保姆级带练。每个项目可免费试读前 2 章，后续章节加入知识星球解锁。</p>
       </div>
     </header>
 
-    <!-- 分类还没建 -->
-    <div v-if="!category" class="column-empty">
-      <div class="column-empty-card">
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-          <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
-          <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-        </svg>
-        <h2>项目实战专栏还未创建</h2>
-        <p>
-          在 Halo 后台新建 slug 为 <code>project</code> 的分类，在该分类下发布的文章会自动渲染成项目卡片展示在这里。
-          给文章设置封面和摘要，并可通过文章注解 <code>haloweb/series-status</code>（值为 <code>updating</code> /
-          <code>complete</code>）显示「连载中 / 已完结」角标。
-        </p>
-      </div>
-    </div>
-
-    <!-- 项目卡片 -->
-    <main v-else class="column-list">
+    <!-- 项目卡片：一个卡片 = 一个系列/项目 -->
+    <main v-if="series.length" class="column-list">
       <NuxtLink
-        v-for="post in posts"
-        :key="post.metadata.name"
-        :to="articleLink(post)"
+        v-for="s in series"
+        :key="s.slug"
+        :to="`/column/${s.slug}`"
         class="project-card"
       >
         <div class="project-cover">
           <img
-            v-if="post.spec.cover"
-            :src="post.spec.cover"
-            :alt="post.spec.title"
+            v-if="s.cover"
+            :src="s.cover"
+            :alt="s.title"
             referrerpolicy="no-referrer"
             loading="lazy"
           />
@@ -46,15 +30,15 @@
               <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
             </svg>
           </span>
-          <span v-if="statusOf(post)" class="project-status" :class="statusClass(post)">
-            {{ statusOf(post) === "complete" ? "已完结" : "连载中" }}
+          <span class="project-status" :class="s.status === 'complete' ? 'project-status--complete' : 'project-status--updating'">
+            {{ s.status === "complete" ? "已完结" : "连载中" }}
           </span>
         </div>
         <div class="project-body">
-          <h2 class="project-title">{{ post.spec.title }}</h2>
-          <p class="project-excerpt">{{ post.spec.excerpt?.raw || post.status.excerpt || "暂无简介" }}</p>
+          <h2 class="project-title">{{ s.title }}</h2>
+          <p class="project-excerpt">{{ s.description || "暂无简介" }}</p>
           <div class="project-meta">
-            <span>{{ formatDate(post.status.publishTime) }}</span>
+            <span>{{ s.chapterCount }} 章</span>
             <span class="project-more">
               查看项目
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -64,62 +48,34 @@
           </div>
         </div>
       </NuxtLink>
-
-      <div v-if="posts.length === 0" class="column-empty">
-        <div class="column-empty-card">
-          <h2>专栏下还没有项目文章</h2>
-          <p>在 Halo 后台向「{{ category.spec.displayName }}」分类发布文章后，这里会自动出现项目卡片。</p>
-        </div>
-      </div>
     </main>
+
+    <!-- 空状态 -->
+    <div v-else-if="!pending" class="column-empty">
+      <div class="column-empty-card">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+        </svg>
+        <h2>项目实战专栏还没有项目</h2>
+        <p>在后台创建系列并挂接章节文章后，这里会自动出现项目卡片。</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { HaloCategory, HaloPost } from "~/types/halo";
+import type { SeriesCard } from "~/types/halo";
 
-const PROJECT_CATEGORY_SLUG = "project";
+const { getSeries } = useHaloApi();
 
-const { getCategoryBySlug, getPostsByCategory } = useHaloApi();
-
-const { data: category } = await useAsyncData<HaloCategory | undefined>(
-  "project-category",
-  () => getCategoryBySlug(PROJECT_CATEGORY_SLUG, true),
+const { data: series, pending } = await useAsyncData<SeriesCard[]>("series-cards", () =>
+  getSeries(),
 );
-
-const { data: posts } = await useAsyncData<HaloPost[]>(
-  "project-posts",
-  () =>
-    category.value
-      ? getPostsByCategory(category.value.metadata.name)
-      : Promise.resolve([] as HaloPost[]),
-  { watch: [() => category.value?.metadata.name] },
-);
-
-function statusOf(post: HaloPost): "updating" | "complete" | null {
-  const v = post.metadata.annotations?.["haloweb/series-status"];
-  return v === "updating" || v === "complete" ? v : null;
-}
-function statusClass(post: HaloPost): string {
-  return statusOf(post) === "complete" ? "project-status--complete" : "project-status--updating";
-}
-
-/** 项目文章仍走 Halo 原生文章详情：优先用后台 permalink，兜底 slug */
-function articleLink(post: HaloPost): string {
-  if (post.status.permalink) return post.status.permalink;
-  return `/archives/${post.spec.slug}`;
-}
-
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return "";
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 useHead({
   title: "项目实战",
-  meta: [{ name: "description", content: "企业级项目从 0 到 1 实战：微服务、Spring AI、高并发等专栏。" }],
+  meta: [{ name: "description", content: "企业级项目从 0 到 1 实战：数字孪生、微服务、Spring AI、高并发等专栏，免费试读前2章。" }],
 });
 </script>
 
@@ -278,13 +234,6 @@ useHead({
   margin: 0;
   font-size: 14px;
   line-height: 1.9;
-}
-.column-empty-card code {
-  background: #f1f5f9;
-  color: #db2777;
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 13px;
 }
 @media (max-width: 768px) {
   .column-list {

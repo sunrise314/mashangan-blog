@@ -146,7 +146,7 @@ const page = computed(() => {
 });
 
 const { data: category } = await useAsyncData<HaloCategory | undefined>(`category-${slug}`, () =>
-  getCategoryBySlug(slug),
+  getCategoryBySlug(slug, true),
 );
 
 if (!category.value) {

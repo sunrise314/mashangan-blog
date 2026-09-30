@@ -59,13 +59,35 @@ public class PublicContentController {
                 postQueryService.toHaloList(result.getRecords()));
     }
 
+    @GetMapping("/posts/by-slug/{slug}")
+    public HaloPost postBySlug(@PathVariable String slug) {
+        // 含系列文章（全局 /posts 有意排除系列文章），供 /archives 固定链接解析后 301
+        Post post = postQueryService.getPublishedBySlug(slug);
+        if (post == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return postQueryService.toHaloList(List.of(post)).getFirst();
+    }
+
     @GetMapping("/posts/{name}")
-    public HaloPost.Detail postDetail(@PathVariable("name") String name) {
+    public HaloPost.Detail postDetail(@PathVariable String name) {
         Post post = postQueryService.getPublishedByHaloName(name);
         if (post == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-        return postQueryService.toHaloDetail(post);
+        HaloPost.Detail detail = postQueryService.toHaloDetail(post);
+        // 付费墙：锁定章节剥离正文，仅返回摘要 + access 标记（服务端兜底，前端无法绕过）
+        SeriesQueryService.ChapterAccess access = seriesQueryService.accessOf(post);
+        if (access == null) return detail;
+        var accessDto = new HaloPost.Access(access.locked(), access.seriesSlug(),
+                access.seriesTitle(), access.freeChapterCount(),
+                access.chapterOrder(), access.totalChapters());
+        if (!access.locked()) {
+            return new HaloPost.Detail(detail.metadata(), detail.spec(), detail.status(),
+                    detail.categories(), detail.tags(), detail.content(), accessDto);
+        }
+        return new HaloPost.Detail(detail.metadata(), detail.spec(), detail.status(),
+                detail.categories(), detail.tags(), new HaloPost.Content("", ""), accessDto);
     }
 
     @GetMapping("/categories")

@@ -2,8 +2,15 @@ package com.mashangan.blog.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mashangan.blog.domain.entity.Category;
+import com.mashangan.blog.domain.entity.Post;
+import com.mashangan.blog.domain.entity.PostCategoryRel;
 import com.mashangan.blog.mapper.CategoryMapper;
+import com.mashangan.blog.mapper.PostCategoryRelMapper;
+import com.mashangan.blog.mapper.PostMapper;
+import com.mashangan.blog.web.admin.dto.CategoryPostSummary;
 import com.mashangan.blog.web.admin.dto.CategoryRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,10 +26,45 @@ import java.util.UUID;
 public class AdminCategoryService {
 
     private final CategoryMapper categoryMapper;
+    private final PostMapper postMapper;
+    private final PostCategoryRelMapper postCategoryRelMapper;
+
+    /** 分类下文章轻量列表（分类管理展开下拉用），置顶/权重/创建时间倒序 */
+    public List<CategoryPostSummary> posts(Long id) {
+        List<Long> postIds = postCategoryRelMapper.selectList(
+                        new QueryWrapper<PostCategoryRel>().eq("category_id", id))
+                .stream().map(PostCategoryRel::getPostId).toList();
+        if (postIds.isEmpty()) return List.of();
+        return postMapper.selectList(new QueryWrapper<Post>()
+                        .in("id", postIds)
+                        .eq("deleted", false)
+                        .orderByDesc("pinned").orderByDesc("priority").orderByDesc("created_at"))
+                .stream()
+                .map(p -> new CategoryPostSummary(p.getId(), p.getTitle(), p.getSlug(),
+                        p.getPublished(), p.getPinned(), p.getUpdatedAt()))
+                .toList();
+    }
 
     public List<Category> list() {
         return categoryMapper.selectList(new QueryWrapper<Category>()
                 .orderByDesc("priority").orderByDesc("created_at"));
+    }
+
+    /** 分类管理分页列表，排序与 list() 一致 */
+    public IPage<Category> page(int page, int size) {
+        return categoryMapper.selectPage(new Page<>(page, size),
+                new QueryWrapper<Category>().orderByDesc("priority").orderByDesc("created_at"));
+    }
+
+    /** 拖拽排序：按传入顺序重写 priority（第 1 位 = total 最大，依次递减） */
+    public void reorder(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return;
+        int n = ids.size();
+        for (int i = 0; i < n; i++) {
+            categoryMapper.update(null, new UpdateWrapper<Category>()
+                    .eq("id", ids.get(i))
+                    .set("priority", n - i));
+        }
     }
 
     public Category get(Long id) {

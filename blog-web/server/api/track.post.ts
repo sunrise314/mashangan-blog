@@ -43,7 +43,9 @@ export default defineEventHandler(async (event) => {
 
   const ua = getHeader(event, "user-agent") || str(body.ua, 300);
   const { browser, os, device } = parseUa(ua);
-  const ref = str(body.ref, 500);
+  // ref 优先用客户端传的；SPA 内部跳转通常传空，此时回退到服务端 Referer 头（捕获外部搜索引擎来源）
+  let ref = str(body.ref, 500);
+  if (!ref) ref = String(getHeader(event, "referer") || "");
   const kw = parseKw(ref);
   const ip = getClientIp(event);
   const { region, isp } = await searchIpRegion(ip);

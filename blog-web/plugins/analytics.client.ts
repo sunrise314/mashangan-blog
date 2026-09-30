@@ -9,8 +9,10 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   const vid = ensureId("analytics_vid", localStorage);
   const sid = ensureId("analytics_sid", sessionStorage);
-  // 首个 PV 用 SSR 捕获的 Referer（搜索引擎来源），后续内部跳转为空
-  const firstRef = String((nuxtApp.payload as Record<string, unknown>)?.ssrRef || "");
+  // 会话来源：SSR 捕获的 Referer（搜索引擎等） → sessionStorage 缓存，整个会话内复用
+  let sessionRef = String((nuxtApp.payload as Record<string, unknown>)?.ssrRef || "");
+  if (!sessionRef) sessionRef = sessionStorage.getItem("analytics_ref") || "";
+  if (sessionRef) sessionStorage.setItem("analytics_ref", sessionRef);
 
   const send = (payload: Record<string, unknown>): void => {
     const body = JSON.stringify({
@@ -44,13 +46,13 @@ export default defineNuxtPlugin((nuxtApp) => {
     const now = Date.now();
     const p = location.pathname;
     if (p === lastPath && now - lastPvTs < 2000) return; // 去重
-    const ref = lastPath === "" ? firstRef : ""; // 仅会话首次带来源
     commitLeave();
     lastPath = p;
-    lastRef = ref;
+    lastRef = sessionRef;
     enterTs = now;
     lastPvTs = now;
-    send({ type: "pv", path: p, title: document.title.slice(0, 200), ref });
+    // 整个会话内每次都带 sessionRef，服务端 kw 解析也依赖它
+    send({ type: "pv", path: p, title: document.title.slice(0, 200), ref: sessionRef });
   };
 
   const commitLeave = (): void => {

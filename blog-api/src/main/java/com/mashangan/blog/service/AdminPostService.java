@@ -28,6 +28,7 @@ public class AdminPostService {
     private final PostTagRelMapper postTagRelMapper;
     private final MarkdownService markdownService;
     private final PostRevisionMapper postRevisionMapper;
+    private final CachePurgeService cachePurgeService;
 
     /** 后台列表：含草稿，按更新时间倒序，支持关键字/发布状态过滤；deleted=true 时为回收站视图 */
     public IPage<PostResponse> page(int page, int size, String keyword, boolean deleted, Boolean published) {
@@ -61,6 +62,7 @@ public class AdminPostService {
         applyRequest(post, req, true);
         postMapper.insert(post);
         saveAssociations(post.getId(), req);
+        cachePurgeService.purgeAll();
         return get(post.getId());
     }
 
@@ -83,6 +85,7 @@ public class AdminPostService {
         postCategoryRelMapper.delete(new QueryWrapper<PostCategoryRel>().eq("post_id", id));
         postTagRelMapper.delete(new QueryWrapper<PostTagRel>().eq("post_id", id));
         saveAssociations(id, req);
+        cachePurgeService.purgeAll();
         return get(id);
     }
 
@@ -93,6 +96,7 @@ public class AdminPostService {
         post.setId(id);
         post.setDeleted(true);
         postMapper.updateById(post);
+        cachePurgeService.purgeAll();
     }
 
     /** 从回收站恢复 */
@@ -102,6 +106,7 @@ public class AdminPostService {
         if (post == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         post.setDeleted(false);
         postMapper.updateById(post);
+        cachePurgeService.purgeAll();
     }
 
     /** 彻底删除：物理删除文章及其关联 */
@@ -111,6 +116,7 @@ public class AdminPostService {
         postTagRelMapper.delete(new QueryWrapper<PostTagRel>().eq("post_id", id));
         postRevisionMapper.delete(new QueryWrapper<PostRevision>().eq("post_id", id));
         postMapper.deleteById(id);
+        cachePurgeService.purgeAll();
     }
 
     // ---------- 修订历史 ----------
@@ -157,6 +163,7 @@ public class AdminPostService {
         post.setAllowComment(rev.getAllowComment());
         post.setUpdatedAt(OffsetDateTime.now());
         postMapper.updateById(post);
+        cachePurgeService.purgeAll();
         return get(postId);
     }
 

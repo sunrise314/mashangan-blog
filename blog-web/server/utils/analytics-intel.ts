@@ -73,11 +73,12 @@ function ipv4ToInt(ip: string): number | null {
 
 let _xdb: Uint8Array | null = null;
 
-/** 加载内置 ip2region.xdb（Nitro serverAssets，失败时回退进程工作目录） */
+/** 加载内置 ip2region.xdb（Nitro serverAssets 内联为 base64 mjs，通过 assets storage 访问） */
 export async function loadXdb(): Promise<Uint8Array | null> {
   if (_xdb) return _xdb;
   try {
-    const raw = await useStorage("assets:data").getItemRaw("ip2region.xdb");
+    // Nitro mount serverAssets 到 "/assets"，key 形如 "server:ip2region.xdb"
+    const raw = await useStorage("/assets").getItemRaw("server:ip2region.xdb");
     if (raw && raw.byteLength > 0) {
       _xdb = raw;
       return _xdb;

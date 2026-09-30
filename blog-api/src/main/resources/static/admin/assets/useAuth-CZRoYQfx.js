@@ -1,0 +1,1 @@
+import{O as l,P as s,Q as r,r as c,R as g}from"./index-CIa9Kiva.js";const e=c(g()),t="analytics_token";function i(){return{token:e,isLoggedIn:()=>!!e.value,getAnalyticsToken:()=>localStorage.getItem(t)||"",login:async(n,o)=>{const a=await s(n,o);r(a.token),e.value=a.token,localStorage.setItem(t,o)},logout:()=>{l(),localStorage.removeItem(t),e.value=""}}}export{i as u};

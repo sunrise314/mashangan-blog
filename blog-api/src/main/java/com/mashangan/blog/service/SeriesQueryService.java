@@ -62,19 +62,8 @@ public class SeriesQueryService {
         if (series == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-        List<Post> posts = postMapper.selectList(new QueryWrapper<Post>()
-                .eq("series_id", series.getId())
-                .eq("published", true)
-                .eq("deleted", false)
-                .eq("visible", "PUBLIC")
-                .orderByAsc("publish_time")
-                .orderByAsc("id"));
+        List<Post> posts = orderedPublished(series.getId());
         int freeCount = series.getFreeChapterCount() == null ? 0 : series.getFreeChapterCount();
-        List<SeriesDetail.Chapter> chapters = posts.stream().map(p ->
-                new SeriesDetail.Chapter(
-                        p.getHaloName(), p.getTitle(), p.getSlug(), p.getCover(), p.getExcerpt(),
-                        false, 0)).toList();
-        // 按顺序重建并标记免费
         List<SeriesDetail.Chapter> ordered = new java.util.ArrayList<>();
         for (int i = 0; i < posts.size(); i++) {
             Post p = posts.get(i);
@@ -84,5 +73,42 @@ public class SeriesQueryService {
         }
         return new SeriesDetail(series.getSlug(), series.getTitle(), series.getCover(),
                 series.getDescription(), series.getStatus(), freeCount, ordered.size(), ordered);
+    }
+
+    /** 系列内已发布章节，按发布时间/id 升序 */
+    private List<Post> orderedPublished(Long seriesId) {
+        return postMapper.selectList(new QueryWrapper<Post>()
+                .eq("series_id", seriesId)
+                .eq("published", true)
+                .eq("deleted", false)
+                .eq("visible", "PUBLIC")
+                .orderByAsc("publish_time")
+                .orderByAsc("id"));
+    }
+
+    /** 单篇文章的付费墙判定结果；非系列文章返回 null */
+    public ChapterAccess accessOf(Post post) {
+        if (post.getSeriesId() == null) return null;
+        Series series = seriesMapper.selectById(post.getSeriesId());
+        if (series == null) return null;
+        List<Post> chapters = orderedPublished(series.getId());
+        int order = 0;
+        for (int i = 0; i < chapters.size(); i++) {
+            if (chapters.get(i).getId().equals(post.getId())) {
+                order = i + 1;
+                break;
+            }
+        }
+        int freeCount = series.getFreeChapterCount() == null ? 0 : series.getFreeChapterCount();
+        // order=0（理论上不该发生）按锁定处理，兜底防泄露
+        boolean locked = order == 0 || order > freeCount;
+        return new ChapterAccess(series.getSlug(), series.getTitle(),
+                freeCount, order, chapters.size(), locked);
+    }
+
+    /** 付费墙判定载体 */
+    public record ChapterAccess(String seriesSlug, String seriesTitle,
+                                int freeChapterCount, int chapterOrder,
+                                int totalChapters, boolean locked) {
     }
 }

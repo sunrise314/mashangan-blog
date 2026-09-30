@@ -6,6 +6,8 @@ import type {
   HaloPostDetail,
   HaloSearchHit,
   HaloSinglePage,
+  SeriesCard,
+  SeriesDetail,
 } from "~/types/halo";
 import { SECTION_INTERVIEW, SECTION_LABEL } from "~/utils/section";
 
@@ -176,7 +178,7 @@ export function useHaloApi() {
     categorySlug: string,
     postSlug: string,
   ): Promise<{ category: HaloCategory; post: HaloPost } | null> {
-    const category = await getCategoryBySlug(categorySlug);
+    const category = await getCategoryBySlug(categorySlug, true);
     if (!category) return null;
     const posts = await getPostsByCategory(category.metadata.name);
     const post = posts.find((p) => p.spec.slug === postSlug);
@@ -188,6 +190,25 @@ export function useHaloApi() {
   async function findPostBySlug(postSlug: string): Promise<HaloPost | undefined> {
     const posts = await getAllPosts();
     return posts.find((p) => p.spec.slug === postSlug);
+  }
+
+  /** 按 slug 查找任意已发布文章（含系列文章，全局 /posts 会排除系列文章） */
+  async function findAnyPostBySlug(postSlug: string): Promise<HaloPost | undefined> {
+    try {
+      return await apiFetch<HaloPost>(`/posts/by-slug/${encodeURIComponent(postSlug)}`);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** 项目实战卡片列表（一个卡片 = 一个系列/项目） */
+  async function getSeries(): Promise<SeriesCard[]> {
+    return await apiFetch<SeriesCard[]>("/series");
+  }
+
+  /** 项目大纲：系列元信息 + 章节列表（含免费/付费标记） */
+  async function getSeriesDetail(slug: string): Promise<SeriesDetail> {
+    return await apiFetch<SeriesDetail>(`/series/${encodeURIComponent(slug)}`);
   }
 
   return {
@@ -207,5 +228,8 @@ export function useHaloApi() {
     searchPosts,
     findPostBySlugs,
     findPostBySlug,
+    findAnyPostBySlug,
+    getSeries,
+    getSeriesDetail,
   };
 }

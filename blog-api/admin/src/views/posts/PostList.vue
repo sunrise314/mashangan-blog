@@ -2,14 +2,26 @@
   <LayoutShell>
     <div class="topbar">
       <h2>文章</h2>
-      <button class="btn btn-primary" @click="goNew">写文章</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" :disabled="importing" @click="mdInput?.click()">
+          {{ importing ? '导入中…' : '上传MD文档' }}
+        </button>
+        <input
+          ref="mdInput"
+          type="file"
+          accept=".md,.markdown,text/markdown,text/plain"
+          style="display:none"
+          @change="importMd"
+        />
+        <button class="btn btn-primary" @click="goNew">写文章</button>
+      </div>
     </div>
 
     <div class="card">
       <div class="toolbar">
         <input v-model="keyword" placeholder="搜索标题…" style="max-width:240px" @keyup.enter="reload" />
         <button class="btn btn-ghost" @click="reload">搜索</button>
-        <button class="btn btn-ghost" @click="trashView = !trashView; reload">
+        <button class="btn btn-ghost" @click="trashView = !trashView; reload()">
           {{ trashView ? '返回列表' : '回收站' }}
         </button>
         <span style="color:#888;font-size:13px">共 {{ total }} 篇</span>
@@ -52,9 +64,9 @@
       <div v-else style="text-align:center;color:#999;padding:40px 0">暂无文章</div>
 
       <div class="toolbar" style="margin-top:12px;justify-content:flex-end">
-        <button class="btn btn-ghost" :disabled="page <= 1" @click="page--;reload">上一页</button>
+        <button class="btn btn-ghost" :disabled="page <= 1" @click="page--; reload()">上一页</button>
         <span style="font-size:13px;color:#666">第 {{ page }} / {{ totalPages }} 页</span>
-        <button class="btn btn-ghost" :disabled="page >= totalPages" @click="page++;reload">下一页</button>
+        <button class="btn btn-ghost" :disabled="page >= totalPages" @click="page++; reload()">下一页</button>
       </div>
     </div>
   </LayoutShell>
@@ -74,6 +86,8 @@ const total = ref(0)
 const totalPages = ref(1)
 const keyword = ref('')
 const trashView = ref(false)
+const mdInput = ref<HTMLInputElement | null>(null)
+const importing = ref(false)
 
 async function reload() {
   const r = await postsApi.list(page.value, size, keyword.value || undefined, trashView.value)
@@ -84,6 +98,48 @@ async function reload() {
 
 function goNew() { router.push('/admin/posts/new') }
 function goEdit(id: number) { router.push(`/admin/posts/${id}`) }
+
+/** 上传 MD 文档：读取内容 → 提取标题（首个 # 标题，否则文件名）→ 创建草稿 → 进入编辑器 */
+async function importMd(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  importing.value = true
+  try {
+    const text = await file.text()
+    if (!text.trim()) {
+      alert('文件内容为空')
+      return
+    }
+    const nameBase = file.name.replace(/\.(md|markdown)$/i, '').trim()
+    const heading = text.match(/^#\s+(.+)$/m)?.[1]?.trim()
+    const title = heading || nameBase || '未命名导入'
+    // slug：文件名归一化（保留中文、字母、数字、连字符），失败则用时间戳兜底
+    const slug =
+      nameBase.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '') ||
+      `md-${Date.now()}`
+    const post = await postsApi.create({
+      title,
+      slug,
+      cover: '',
+      excerpt: '',
+      content: text,
+      categories: [],
+      tags: [],
+      published: false,
+      pinned: false,
+      priority: 0,
+      visible: 'PUBLIC',
+      allowComment: true,
+    })
+    router.push(`/admin/posts/${post.id}`)
+  } catch (err: any) {
+    alert('导入失败：' + (err?.message || err))
+  } finally {
+    importing.value = false
+  }
+}
 
 async function doDelete(id: number) {
   if (!confirm('移入回收站？')) return

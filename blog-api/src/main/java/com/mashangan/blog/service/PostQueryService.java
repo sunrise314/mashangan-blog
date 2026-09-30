@@ -58,6 +58,11 @@ public class PostQueryService {
         return postMapper.selectOne(publishedWrapper().eq("halo_name", haloName).last("LIMIT 1"));
     }
 
+    /** 按 slug 查已发布文章（含系列文章，供 /archives 固定链接解析） */
+    public Post getPublishedBySlug(String slug) {
+        return postMapper.selectOne(publishedWrapper().eq("slug", slug).last("LIMIT 1"));
+    }
+
     /** Halo 公开列表默认：置顶优先，发布时间降序 */
     private QueryWrapper<Post> publishedWrapper() {
         return new QueryWrapper<Post>()
@@ -132,7 +137,7 @@ public class PostQueryService {
         var content = new HaloPost.Content(post.getContentHtml(),
                 post.getContentRaw() != null ? post.getContentRaw() : post.getContentHtml());
         return new HaloPost.Detail(listed.metadata(), listed.spec(), listed.status(),
-                listed.categories(), listed.tags(), content);
+                listed.categories(), listed.tags(), content, null);
     }
 
     private HaloPost toHalo(Post post, List<String> categoryNames, List<String> tagNames,

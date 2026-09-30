@@ -33,7 +33,7 @@ const categorySlug = decodeSlug(route.params.categorySlug as string);
 const postSlug = decodeSlug(route.params.postSlug as string);
 
 const { data: category } = await useAsyncData(`cat-${categorySlug}`, () =>
-  getCategoryBySlug(categorySlug),
+  getCategoryBySlug(categorySlug, true),
 );
 
 if (!category.value) {
@@ -58,6 +58,12 @@ const post = computed(() => posts.value.find((p) => p.spec.slug === postSlug));
 
 if (!post.value) {
   throw createError({ statusCode: 404, statusMessage: "文章不存在" });
+}
+
+// 系列章节统一收口到 /column/{系列slug}/{文章slug}（付费墙/章序都在那边处理）
+const seriesSlug = post.value.metadata.annotations?.["haloweb/series"];
+if (seriesSlug) {
+  await navigateTo(`/column/${seriesSlug}/${postSlug}`, { redirectCode: 301 });
 }
 
 const { data: postDetail } = await useAsyncData<HaloPostDetail>(

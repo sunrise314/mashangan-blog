@@ -44,14 +44,14 @@
 
       <div class="prose-halo max-w-none" v-html="renderedHtml"></div>
 
-      <!-- 上下章导航（归属分类的文章才展示；连载分类显示「上一章/下一章」） -->
+      <!-- 上下章导航（有链接前缀且存在上一/下一篇时展示；连载显示「上一章/下一章」） -->
       <div
-        v-if="categorySlug && (prevPost || nextPost)"
+        v-if="navBase && (prevPost || nextPost)"
         class="mt-12 pt-6 border-t border-slate-100 grid grid-cols-2 gap-4"
       >
         <NuxtLink
           v-if="prevPost"
-          :to="`/categories/${categorySlug}/${prevPost.spec.slug}`"
+          :to="`${navBase}/${prevPost.spec.slug}`"
           class="p-4 rounded-lg border border-slate-200 hover:border-sky-300 hover:bg-sky-50 transition-colors group"
         >
           <div class="text-xs text-slate-500 mb-1">{{ isSeries ? "上一章" : "上一篇" }}</div>
@@ -62,7 +62,7 @@
         <div v-else></div>
         <NuxtLink
           v-if="nextPost"
-          :to="`/categories/${categorySlug}/${nextPost.spec.slug}`"
+          :to="`${navBase}/${nextPost.spec.slug}`"
           class="p-4 rounded-lg border border-slate-200 hover:border-sky-300 hover:bg-sky-50 transition-colors group text-right"
         >
           <div class="text-xs text-slate-500 mb-1">{{ isSeries ? "下一章" : "下一篇" }}</div>
@@ -91,20 +91,33 @@ const props = defineProps<{
   rawContent?: string;
   /** 文章归属分类的 slug；无分类文章不展示上下篇导航 */
   categorySlug?: string;
+  /** 上下篇链接前缀，默认 /categories/{categorySlug}；项目阅读页传 /column/{seriesSlug} */
+  basePath?: string;
   prevPost?: HaloPost;
   nextPost?: HaloPost;
   /** 章节式连载上下文：提供后显示进度角标与右侧章节目录 */
   series?: { category: HaloCategory; posts: HaloPost[] };
+  /** 显式章节进度（不依赖分类目录，用于 /column 阅读页） */
+  chapter?: { current: number; total: number };
 }>();
 
-// 系列进度：当前章号取自 slug 编号；总数 = 带编号文章数（发刊词不计）
+// 上下篇/章导航的链接前缀
+const navBase = computed(() =>
+  props.basePath ?? (props.categorySlug ? `/categories/${props.categorySlug}` : ""),
+);
+
+// 系列进度：优先使用显式 chapter 参数，否则从 series 上下文的 slug 编号推导
 const chapterNumber = computed(() =>
-  props.series ? getChapterNumber(props.post.spec.slug) : undefined,
+  props.chapter?.current ?? (props.series ? getChapterNumber(props.post.spec.slug) : undefined),
 );
 const chapterTotal = computed(
-  () => props.series?.posts.filter((p) => getChapterNumber(p.spec.slug) != null).length ?? 0,
+  () =>
+    props.chapter?.total ??
+    (props.series
+      ? props.series.posts.filter((p) => getChapterNumber(p.spec.slug) != null).length
+      : 0),
 );
-const isSeries = computed(() => !!props.series);
+const isSeries = computed(() => !!props.series || !!props.chapter);
 
 // 先消毒正文（防存储型 XSS），再解析标题、注入 id、生成 TOC
 const { html: renderedHtml, toc } = extractToc(sanitizeHtml(props.rawContent || ""));
