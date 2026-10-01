@@ -105,6 +105,12 @@ public class AdminCategoryService {
         c.setDescription(req.description() != null ? req.description() : "");
         c.setPriority(req.priority() != null ? req.priority() : 0);
         c.setHideFromList(req.hideFromList() != null && req.hideFromList());
+        // 状态只接受合法值；更新时未传则保持原值，新建缺省连载中
+        if ("completed".equals(req.status()) || "updating".equals(req.status())) {
+            c.setStatus(req.status());
+        } else if (isNew || c.getStatus() == null || c.getStatus().isBlank()) {
+            c.setStatus("updating");
+        }
         c.setSection(req.section());
         c.setTemplate(req.template());
         c.setPreventParentCascadeQuery(req.preventParentCascadeQuery() != null && req.preventParentCascadeQuery());

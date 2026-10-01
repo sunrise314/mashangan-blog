@@ -11,6 +11,7 @@ public record CategoryRequest(
         String parentHaloName,
         String section,
         String template,
-        Boolean preventParentCascadeQuery
+        Boolean preventParentCascadeQuery,
+        String status
 ) {
 }

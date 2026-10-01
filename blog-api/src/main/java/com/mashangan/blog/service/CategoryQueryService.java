@@ -91,7 +91,7 @@ public class CategoryQueryService {
     public HaloCategory toHalo(Category c, Map<Long, List<String>> childrenByParent,
                                Map<Long, Integer> counts) {
         List<String> children = childrenByParent.get(c.getId());
-        Meta meta = HaloCategory.meta(c.getHaloName(), c.getCreatedAt(), c.getSection());
+        Meta meta = HaloCategory.meta(c.getHaloName(), c.getCreatedAt(), c.getSection(), c.getStatus());
         // Halo 仅在直接归属文章数 > 0 时输出计数；纯父分类/空分类省略
         Integer count = counts.getOrDefault(c.getId(), 0);
         Integer shown = count > 0 ? count : null;

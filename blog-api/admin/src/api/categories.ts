@@ -14,6 +14,8 @@ export interface Category {
   section?: string
   template?: string
   preventParentCascadeQuery?: boolean
+  /** 连载状态：updating（连载中）| completed（已完结） */
+  status?: 'updating' | 'completed'
   createdAt?: string
 }
 

@@ -29,6 +29,9 @@ public class Category {
 
     private Boolean hideFromList;
 
+    /** 连载状态：updating（连载中，默认）| completed（已完结），前端徽章据此渲染 */
+    private String status;
+
     private Long parentId;
 
     /** 栏目分区标识，如 interview（八股题库），对应 Halo label haloweb.section */

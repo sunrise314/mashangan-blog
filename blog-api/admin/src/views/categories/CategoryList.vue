@@ -47,6 +47,7 @@
               </td>
               <td>
                 {{ c.displayName }}
+                <span v-if="!sortMode && c.status === 'completed'" class="badge badge-on" style="margin-left:6px">已完结</span>
                 <span v-if="!sortMode && postsCache[c.id!]?.length" class="badge badge-on" style="margin-left:6px">{{ postsCache[c.id!].length }} 篇</span>
               </td>
               <td style="color:#666">{{ c.slug }}</td>
@@ -114,6 +115,15 @@
         <div class="form-row"><label>描述</label><textarea v-model="form.description" rows="2"></textarea></div>
         <div class="grid-2">
           <div class="form-row"><label>排序（越大越靠前）</label><input type="number" v-model.number="form.priority"></div>
+          <div class="form-row">
+            <label>连载状态</label>
+            <select v-model="form.status">
+              <option value="updating">连载中</option>
+              <option value="completed">已完结</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
           <div class="form-row">
             <label>栏目分区</label>
             <select v-model="form.section">
@@ -266,7 +276,7 @@ function fmtTime(s?: string) {
 }
 
 function openNew() {
-  form.value = { displayName: '', slug: '', priority: 0, hideFromList: false, section: '' }
+  form.value = { displayName: '', slug: '', priority: 0, hideFromList: false, section: '', status: 'updating' }
   editing.value = form.value
 }
 function openEdit(c: Category) {
