@@ -357,8 +357,9 @@ public class StudioService {
 
     static String sanitizeSlug(String raw) {
         if (raw == null) return "";
+        // 字符类内的 [ 和 ] 必须转义，否则 Java 会把 [ 当嵌套类开启、] 提前闭合 → PatternSyntaxException
         return raw.toLowerCase()
-                .replaceAll("[\\\\/:*?\"<>|'#%&{}$!@+=[\\];,.^~`\\s]+", "-")
+                .replaceAll("[\\\\/:*?\"<>|'#%&{}$!@+=\\[\\];,.^~`\\s]+", "-")
                 .replaceAll("-+", "-")
                 .replaceAll("^-|-$", "");
     }
