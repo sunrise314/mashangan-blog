@@ -279,6 +279,7 @@ const footerText = computed(
 const haloApiBase = config.public.haloApiBase as string;
 
 // SEO 元信息 + 统计代码注入 <head>
+const siteUrl = ((config.public.siteUrl as string) || "").replace(/\/+$/, "");
 useHead(() => {
   const c = siteConfig.value;
   const head: Record<string, any> = {
@@ -287,12 +288,36 @@ useHead(() => {
   if (c?.seoDescription) head.meta = [{ name: "description", content: c.seoDescription }];
   if (c?.seoKeywords)
     head.meta = [...(head.meta || []), { name: "keywords", content: c.seoKeywords }];
+  // OG 基础：og:site_name/og:locale 全站统一，og:type=website 由详情页覆盖为 article
+  head.meta = [
+    ...(head.meta || []),
+    { property: "og:site_name", content: siteTitle.value },
+    { property: "og:locale", content: "zh_CN" },
+    { property: "og:type", content: "website" },
+  ];
+  // canonical：规范地址 = 站点根 + 当前路径（不含 query，避免搜索页参数被收录）
   head.link = [
     { rel: "alternate", type: "application/rss+xml", title: "RSS 订阅", href: "/rss.xml" },
+    ...(siteUrl
+      ? [{ rel: "canonical", href: `${siteUrl}${route.path === "/" ? "/" : route.path}` }]
+      : []),
     ...(c?.faviconUrl ? [{ rel: "icon", type: "image/x-icon", href: c.faviconUrl }] : []),
   ];
-  // 统计代码：解析 raw <script> 片段（含外部 src 与内联代码），拆成独立 script 条目
-  if (c?.analyticsHeadCode) {
+  // WebSite 结构化数据（站点级，详情页会追加 BlogPosting/BreadcrumbList）
+  if (siteUrl) {
+    head.script = [
+      {
+        type: "application/ld+json",
+        innerHTML: jsonLdSafe({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: siteTitle.value,
+          url: `${siteUrl}/`,
+        }),
+      },
+      ...(c?.analyticsHeadCode ? parseAnalyticsScripts(c.analyticsHeadCode) : []),
+    ];
+  } else if (c?.analyticsHeadCode) {
     head.script = parseAnalyticsScripts(c.analyticsHeadCode);
   }
   return head;

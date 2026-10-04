@@ -88,7 +88,70 @@ const nextPost = computed(() => {
   return undefined;
 });
 
+// ── SEO：title 尾巴用站点名（分类名放 breadcrumb 结构化数据里），description 用文章摘要 ──
+// useSiteConfig 直接返回 data ref（内部已 useAsyncData 全站共享），勿再解构
+const siteCfg = useSiteConfig();
+const runtimeCfg = useRuntimeConfig();
+const seoSiteName = computed(
+  () => siteCfg.value?.config?.title || (runtimeCfg.public.siteTitle as string) || "码上岸",
+);
+const seoSiteUrl = ((runtimeCfg.public.siteUrl as string) || "").replace(/\/+$/, "");
+const postUrl = computed(
+  () =>
+    `${seoSiteUrl}/categories/${encodeURIComponent(category.value!.spec.slug)}/${encodeURIComponent(postSlug)}`,
+);
+
 useHead(() => ({
-  title: `${post.value?.spec.title} - ${category.value?.spec.displayName}`,
+  title: `${post.value?.spec.title} - ${seoSiteName.value}`,
+  meta: [
+    { name: "description", content: post.value?.status?.excerpt || "" },
+    { property: "og:title", content: post.value?.spec.title },
+    { property: "og:description", content: post.value?.status?.excerpt || "" },
+    { property: "og:type", content: "article" },
+    { property: "og:url", content: postUrl.value },
+    ...((absolutizeUrl(post.value?.spec.cover, seoSiteUrl) &&
+      [{ property: "og:image", content: absolutizeUrl(post.value?.spec.cover, seoSiteUrl) }]) ||
+      []),
+    ...(post.value?.status?.publishTime
+      ? [{ property: "article:published_time", content: post.value.status.publishTime }]
+      : []),
+    ...(post.value?.status?.lastModifyTime
+      ? [{ property: "article:modified_time", content: post.value.status.lastModifyTime }]
+      : []),
+  ],
+  script: [
+    {
+      type: "application/ld+json",
+      innerHTML: jsonLdSafe({
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: post.value?.spec.title,
+        description: post.value?.status?.excerpt || "",
+        image: absolutizeUrl(post.value?.spec.cover, seoSiteUrl) || undefined,
+        datePublished: post.value?.status?.publishTime || undefined,
+        dateModified: post.value?.status?.lastModifyTime || undefined,
+        mainEntityOfPage: postUrl.value,
+        author: { "@type": "Person", name: seoSiteName.value },
+        publisher: { "@type": "Organization", name: seoSiteName.value },
+      }),
+    },
+    {
+      type: "application/ld+json",
+      innerHTML: jsonLdSafe({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首页", item: `${seoSiteUrl}/` },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: category.value?.spec.displayName,
+            item: `${seoSiteUrl}/categories/${encodeURIComponent(category.value!.spec.slug)}`,
+          },
+          { "@type": "ListItem", position: 3, name: post.value?.spec.title },
+        ],
+      }),
+    },
+  ],
 }));
 </script>

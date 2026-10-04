@@ -107,9 +107,74 @@ const nextChapter = computed<HaloPost | undefined>(() => {
   return n ? ({ spec: { slug: n.slug, title: n.title } } as HaloPost) : undefined;
 });
 
+// ── SEO：title 保留「章节 - 系列名」（系列名有搜索语义）；description=章节摘要；
+// OG/BlogPosting/BreadcrumbList 补齐，锁定章同样输出摘要供搜索展示 ──
+const runtimeCfg = useRuntimeConfig();
+// useSiteConfig 直接返回 data ref（内部已 useAsyncData 全站共享），勿再解构
+const siteCfg = useSiteConfig();
+const seoSiteName = computed(
+  () => siteCfg.value?.config?.title || (runtimeCfg.public.siteTitle as string) || "码上岸",
+);
+const seoSiteUrl = ((runtimeCfg.public.siteUrl as string) || "").replace(/\/+$/, "");
+const chapterUrl = computed(
+  () =>
+    `${seoSiteUrl}/column/${encodeURIComponent(seriesSlug)}/${encodeURIComponent(postSlug)}`,
+);
+
 useHead(() => ({
   title: `${post.value?.spec.title ?? "章节"} - ${series.value?.title ?? "项目实战"}`,
-  meta: [{ name: "description", content: chapter.value?.excerpt || "" }],
+  meta: [
+    { name: "description", content: chapter.value?.excerpt || "" },
+    { property: "og:title", content: post.value?.spec.title },
+    { property: "og:description", content: chapter.value?.excerpt || "" },
+    { property: "og:type", content: "article" },
+    { property: "og:url", content: chapterUrl.value },
+    ...((absolutizeUrl(post.value?.spec.cover, seoSiteUrl) &&
+      [{ property: "og:image", content: absolutizeUrl(post.value?.spec.cover, seoSiteUrl) }]) ||
+      []),
+    ...(post.value?.status?.publishTime
+      ? [{ property: "article:published_time", content: post.value.status.publishTime }]
+      : []),
+    ...(post.value?.status?.lastModifyTime
+      ? [{ property: "article:modified_time", content: post.value.status.lastModifyTime }]
+      : []),
+  ],
+  script: [
+    {
+      type: "application/ld+json",
+      innerHTML: jsonLdSafe({
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: post.value?.spec.title,
+        description: chapter.value?.excerpt || "",
+        image: absolutizeUrl(post.value?.spec.cover, seoSiteUrl) || undefined,
+        datePublished: post.value?.status?.publishTime || undefined,
+        dateModified: post.value?.status?.lastModifyTime || undefined,
+        mainEntityOfPage: chapterUrl.value,
+        isPartOf: { "@type": "Blog", name: series.value?.title },
+        author: { "@type": "Person", name: seoSiteName.value },
+        publisher: { "@type": "Organization", name: seoSiteName.value },
+      }),
+    },
+    {
+      type: "application/ld+json",
+      innerHTML: jsonLdSafe({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "首页", item: `${seoSiteUrl}/` },
+          { "@type": "ListItem", position: 2, name: "项目实战", item: `${seoSiteUrl}/column` },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: series.value?.title,
+            item: `${seoSiteUrl}/column/${encodeURIComponent(seriesSlug)}`,
+          },
+          { "@type": "ListItem", position: 4, name: post.value?.spec.title },
+        ],
+      }),
+    },
+  ],
 }));
 
 function formatDate(dateStr?: string | null): string {

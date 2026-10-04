@@ -1,12 +1,13 @@
 import { cdnizeText } from "../../utils/cdnize";
+import { postPath, type SeoPostItem } from "../../utils/seo";
 
-interface RssPost {
-  spec: { title: string; slug: string };
-  status?: { excerpt?: string; publishTime?: string };
+interface SeriesCardItem {
+  slug: string;
 }
 
-interface RssPageResult {
-  items: RssPost[];
+interface SeriesDetailItem {
+  slug: string;
+  chapters: Array<{ slug: string; free: boolean }>;
 }
 
 export default defineEventHandler(async (event) => {
@@ -16,36 +17,80 @@ export default defineEventHandler(async (event) => {
   const siteTitle = (config.public.siteTitle as string) || "码上岸";
   const contentBase = "/apis/api.content.halo.run/v1alpha1";
 
-  let posts: RssPost[] = [];
+  type RssEntry = { title: string; link: string; excerpt: string; pubDate: string };
+
+  let entries: RssEntry[] = [];
   try {
-    const result = await $fetch<RssPageResult>(
+    const result = await $fetch<{ items: SeoPostItem[] }>(
       `${apiBase}${contentBase}/posts?size=50&page=1`,
     );
-    posts = result.items ?? [];
+    entries = (result.items ?? []).map((p) => ({
+      title: p.spec.title,
+      link: `${siteUrl}${postPath(p)}`,
+      excerpt: p.status?.excerpt || "",
+      pubDate: p.status?.publishTime
+        ? new Date(p.status.publishTime).toUTCString()
+        : "",
+    }));
+
+    // 免费章节并入 RSS（锁定章节不进公开订阅流）：
+    // 系列章节不在全局 /posts 列表，须经 /series → /series/{slug} → by-slug 逐个补数据
+    const seriesCards = await $fetch<SeriesCardItem[]>(`${apiBase}${contentBase}/series`);
+    for (const s of seriesCards) {
+      try {
+        const detail = await $fetch<SeriesDetailItem>(
+          `${apiBase}${contentBase}/series/${encodeURIComponent(s.slug)}`,
+        );
+        for (const ch of (detail.chapters ?? []).filter((c) => c.free)) {
+          try {
+            const post = await $fetch<SeoPostItem & { status?: { excerpt?: string; publishTime?: string } }>(
+              `${apiBase}${contentBase}/posts/by-slug/${encodeURIComponent(ch.slug)}`,
+            );
+            entries.push({
+              title: post.spec.title,
+              link: `${siteUrl}/column/${encodeURIComponent(s.slug)}/${encodeURIComponent(ch.slug)}`,
+              excerpt: post.status?.excerpt || "",
+              // 系列章节 status.publishTime 可能为空，用 creationTimestamp 兜底参与排序
+              pubDate: new Date(
+                post.status?.publishTime || post.metadata?.creationTimestamp || Date.now(),
+              ).toUTCString(),
+            });
+          } catch (e) {
+            console.error(`[rss] fetch chapter ${ch.slug} failed:`, e);
+          }
+        }
+      } catch (e) {
+        console.error(`[rss] fetch series ${s.slug} failed:`, e);
+      }
+    }
+
+    // 并入系列章节后按发布时间重排，仍取最新 50 条
+    entries.sort((a, b) => {
+      const ta = a.pubDate ? Date.parse(a.pubDate) : 0;
+      const tb = b.pubDate ? Date.parse(b.pubDate) : 0;
+      return tb - ta;
+    });
+    entries = entries.slice(0, 50);
   } catch (e) {
     console.error("[rss] fetch posts failed:", e);
   }
 
-  const items = posts
-    .map((p) => {
-      const link = `${siteUrl}/archives/${encodeURIComponent(p.spec.slug)}`;
-      const pubDate = p.status?.publishTime
-        ? new Date(p.status.publishTime).toUTCString()
-        : "";
-      return [
+  const items = entries
+    .map((en) =>
+      [
         "    <item>",
-        `      <title>${escapeXml(p.spec.title)}</title>`,
-        `      <link>${escapeXml(link)}</link>`,
-        `      <guid isPermaLink="true">${escapeXml(link)}</guid>`,
+        `      <title>${escapeXml(en.title)}</title>`,
+        `      <link>${escapeXml(en.link)}</link>`,
+        `      <guid isPermaLink="true">${escapeXml(en.link)}</guid>`,
         `      <description>${escapeXml(
-        cdnizeText(p.status?.excerpt || "", (process.env.IMG_CDN_BASE || "").replace(/\/$/, "")),
+        cdnizeText(en.excerpt, (process.env.IMG_CDN_BASE || "").replace(/\/$/, "")),
       )}</description>`,
-        pubDate ? `      <pubDate>${pubDate}</pubDate>` : "",
+        en.pubDate ? `      <pubDate>${en.pubDate}</pubDate>` : "",
         "    </item>",
       ]
         .filter(Boolean)
-        .join("\n");
-    })
+        .join("\n"),
+    )
     .join("\n");
 
   const body = [
