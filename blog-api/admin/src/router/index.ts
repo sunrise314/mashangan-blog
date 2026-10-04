@@ -17,6 +17,7 @@ const routes = [
   { path: '/admin/social-links', component: () => import('../views/social-links/SocialLinkList.vue') },
   { path: '/admin/studio', component: () => import('../views/studio/StudioSubmit.vue') },
   { path: '/admin/studio-config', component: () => import('../views/studio/AiConfig.vue') },
+  { path: '/admin/seo-push', component: () => import('../views/seo/SeoPush.vue') },
   { path: '/admin/admin-nav', component: () => import('../views/adminnav/AdminNavList.vue') },
   { path: '/admin/dashboard', component: () => import('../views/dashboard/Dashboard.vue') },
 ]

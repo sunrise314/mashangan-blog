@@ -38,5 +38,10 @@ public class SiteConfig {
     private String planetQrcodeUrl;
     private String planetIntroHtml;
     private String planetCtaText;
+    /** SEO 主动推送：百度普通收录 token / IndexNow key / 站点 URL / GSC 资源 ID（后台「SEO 提交」页） */
+    private String seoBaiduToken;
+    private String seoIndexnowKey;
+    private String seoSiteUrl;
+    private String seoGscResource;
     private OffsetDateTime updatedAt;
 }

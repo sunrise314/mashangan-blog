@@ -48,6 +48,10 @@ public class SiteConfigService {
         if (patch.getPlanetQrcodeUrl() != null) c.setPlanetQrcodeUrl(patch.getPlanetQrcodeUrl());
         if (patch.getPlanetIntroHtml() != null) c.setPlanetIntroHtml(patch.getPlanetIntroHtml());
         if (patch.getPlanetCtaText() != null) c.setPlanetCtaText(patch.getPlanetCtaText());
+        if (patch.getSeoBaiduToken() != null) c.setSeoBaiduToken(patch.getSeoBaiduToken().trim());
+        if (patch.getSeoIndexnowKey() != null) c.setSeoIndexnowKey(patch.getSeoIndexnowKey().trim());
+        if (patch.getSeoSiteUrl() != null) c.setSeoSiteUrl(patch.getSeoSiteUrl().trim());
+        if (patch.getSeoGscResource() != null) c.setSeoGscResource(patch.getSeoGscResource().trim());
         c.setUpdatedAt(OffsetDateTime.now());
         c.setId(1L);
         if (siteConfigMapper.selectById(1L) == null) {
