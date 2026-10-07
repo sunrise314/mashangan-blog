@@ -7,6 +7,7 @@ const routes = [
   { path: '/admin/posts/new', component: () => import('../views/posts/PostEdit.vue') },
   { path: '/admin/posts/:id', component: () => import('../views/posts/PostEdit.vue') },
   { path: '/admin/categories', component: () => import('../views/categories/CategoryList.vue') },
+  { path: '/admin/series', component: () => import('../views/series/SeriesList.vue') },
   { path: '/admin/tags', component: () => import('../views/tags/TagList.vue') },
   { path: '/admin/singlepages', component: () => import('../views/singlepages/SinglePageList.vue') },
   { path: '/admin/singlepages/new', component: () => import('../views/singlepages/SinglePageEdit.vue') },
