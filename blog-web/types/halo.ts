@@ -49,6 +49,13 @@ export interface HaloPost {
   tags?: { metadata: { name: string }; spec: { displayName: string; slug: string } }[];
 }
 
+/** /tags 标签云卡片 */
+export interface TagCard {
+  metadata: { name: string };
+  spec: { displayName: string; slug: string };
+  postCount: number;
+}
+
 export interface HaloPostDetail extends HaloPost {
   content: {
     content: string;

@@ -4,16 +4,19 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.mashangan.blog.domain.entity.Category;
 import com.mashangan.blog.domain.entity.Post;
 import com.mashangan.blog.domain.entity.SinglePage;
+import com.mashangan.blog.domain.entity.Tag;
 import com.mashangan.blog.service.CategoryQueryService;
 import com.mashangan.blog.service.PostQueryService;
 import com.mashangan.blog.service.SeriesQueryService;
 import com.mashangan.blog.service.SinglePageQueryService;
+import com.mashangan.blog.service.TagQueryService;
 import com.mashangan.blog.web.halo.dto.HaloCategory;
 import com.mashangan.blog.web.halo.dto.HaloPageResult;
 import com.mashangan.blog.web.halo.dto.HaloPost;
 import com.mashangan.blog.web.halo.dto.HaloSinglePage;
 import com.mashangan.blog.web.halo.dto.SeriesCard;
 import com.mashangan.blog.web.halo.dto.SeriesDetail;
+import com.mashangan.blog.web.halo.dto.TagCard;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +41,7 @@ public class PublicContentController {
     private final CategoryQueryService categoryQueryService;
     private final SinglePageQueryService singlePageQueryService;
     private final SeriesQueryService seriesQueryService;
+    private final TagQueryService tagQueryService;
 
     /** 项目实战卡片列表（一个卡片 = 一个系列/项目） */
     @GetMapping("/series")
@@ -88,6 +92,25 @@ public class PublicContentController {
         }
         return new HaloPost.Detail(detail.metadata(), detail.spec(), detail.status(),
                 detail.categories(), detail.tags(), new HaloPost.Content("", ""), accessDto);
+    }
+
+    /** 标签云：全量标签 + 已发布文章数，前端 /tags 页使用 */
+    @GetMapping("/tags")
+    public HaloPageResult<TagCard> tags(@RequestParam(defaultValue = "1") int page,
+                                        @RequestParam(defaultValue = "200") int size) {
+        List<TagCard> all = tagQueryService.listCards();
+        return slice(all, page, size);
+    }
+
+    /** 标签归档：标签下的已发布文章（分页），前端 /tags/{slug} 使用 */
+    @GetMapping("/tags/{slug}/posts")
+    public HaloPageResult<HaloPost> tagPosts(@PathVariable("slug") String slug,
+                                             @RequestParam(defaultValue = "1") int page,
+                                             @RequestParam(defaultValue = "10") int size) {
+        Tag tag = tagQueryService.getBySlug(slug);
+        IPage<Post> result = tagQueryService.pagePostsByTag(tag, page, size);
+        return HaloPageResult.of(result.getCurrent(), result.getSize(), result.getTotal(),
+                postQueryService.toHaloList(result.getRecords()));
     }
 
     @GetMapping("/categories")

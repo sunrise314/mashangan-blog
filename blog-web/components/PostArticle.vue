@@ -30,6 +30,19 @@
           </span>
         </span>
         <span>发布于 {{ formatDate(post.status.publishTime) }}</span>
+        <!-- 标签：链到 /tags/{slug} 归档页 -->
+        <span
+          v-for="tag in post.tags ?? []"
+          :key="tag.metadata.name"
+          class="inline-flex items-center"
+        >
+          <NuxtLink
+            :to="`/tags/${tag.spec.slug}`"
+            class="px-2 py-0.5 rounded-full bg-slate-100 hover:bg-sky-50 border border-slate-200 hover:border-sky-200 text-xs text-slate-600 hover:text-[#0562a9] transition-colors"
+          >
+            # {{ tag.spec.displayName }}
+          </NuxtLink>
+        </span>
       </div>
 
       <!-- 封面图 -->

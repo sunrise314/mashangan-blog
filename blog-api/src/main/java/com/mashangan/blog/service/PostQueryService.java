@@ -63,8 +63,8 @@ public class PostQueryService {
         return postMapper.selectOne(publishedWrapper().eq("slug", slug).last("LIMIT 1"));
     }
 
-    /** Halo 公开列表默认：置顶优先，发布时间降序 */
-    private QueryWrapper<Post> publishedWrapper() {
+    /** Halo 公开列表默认：置顶优先，发布时间降序（同包服务复用） */
+    QueryWrapper<Post> publishedWrapper() {
         return new QueryWrapper<Post>()
                 .eq("published", true)
                 .eq("deleted", false)

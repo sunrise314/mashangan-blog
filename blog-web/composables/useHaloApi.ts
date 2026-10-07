@@ -8,6 +8,7 @@ import type {
   HaloSinglePage,
   SeriesCard,
   SeriesDetail,
+  TagCard,
 } from "~/types/halo";
 import { SECTION_INTERVIEW, SECTION_LABEL } from "~/utils/section";
 
@@ -217,6 +218,19 @@ export function useHaloApi() {
     return await apiFetch<SeriesDetail>(`/series/${encodeURIComponent(slug)}`);
   }
 
+  /** 标签云：全量标签 + 已发布文章数 */
+  async function getTags(): Promise<TagCard[]> {
+    const result = await apiFetch<HaloPageResult<TagCard>>("/tags?size=200");
+    return result.items ?? [];
+  }
+
+  /** 标签归档：标签下文章分页 */
+  async function getPostsByTagPage(tagSlug: string, page: number, size: number): Promise<HaloPageResult<HaloPost>> {
+    return await apiFetch<HaloPageResult<HaloPost>>(
+      `/tags/${encodeURIComponent(tagSlug)}/posts?page=${page}&size=${size}`,
+    );
+  }
+
   return {
     getPrimaryMenu,
     getAllCategories,
@@ -237,5 +251,7 @@ export function useHaloApi() {
     findAnyPostBySlug,
     getSeries,
     getSeriesDetail,
+    getTags,
+    getPostsByTagPage,
   };
 }

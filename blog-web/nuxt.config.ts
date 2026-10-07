@@ -53,6 +53,9 @@ export default defineNuxtConfig({
       "/column": { swr: 120 },
       "/zsxq": { swr: 300 },
       "/search": { swr: 30 },
+      // 标签路由 slug 全部为 ASCII（建库约定），可安全开 swr
+      "/tags": { swr: 600 },
+      "/tags/**": { swr: 600 },
     },
   },
 });
