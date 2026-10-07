@@ -106,7 +106,7 @@ useHead(() => ({
   padding-bottom: 60px;
 }
 .series-hero {
-  background: linear-gradient(135deg, #0962a9 0%, #2b8ad4 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #2b8ad4 100%);
   color: #fff;
   padding: 18px 16px 34px;
 }
@@ -230,7 +230,7 @@ useHead(() => ({
 }
 .chapter-no--free {
   background: #e6f3fc;
-  color: #0962a9;
+  color: var(--color-primary);
 }
 .chapter-text {
   flex: 1;
@@ -255,7 +255,7 @@ useHead(() => ({
 }
 .chapter-badge--free {
   background: #e6f3fc;
-  color: #0962a9;
+  color: var(--color-primary);
 }
 .chapter-badge--locked {
   background: #fef3e8;
@@ -266,7 +266,7 @@ useHead(() => ({
   flex-shrink: 0;
 }
 .chapter-row:hover .chapter-arrow {
-  color: #0962a9;
+  color: var(--color-primary);
 }
 .join-card {
   margin-top: 22px;
@@ -307,7 +307,7 @@ useHead(() => ({
   padding: 11px 24px;
   border-radius: 999px;
   background: #fff;
-  color: #0962a9;
+  color: var(--color-primary);
   font-weight: 700;
   font-size: 14px;
   text-decoration: none;

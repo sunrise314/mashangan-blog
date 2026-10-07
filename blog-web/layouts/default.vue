@@ -163,6 +163,29 @@
 
       <!-- 移动端导航面板 -->
       <div v-if="mobileOpen" class="md:hidden border-t border-slate-200 bg-white">
+        <!-- 移动端搜索（桌面搜索框为 hidden md:flex，移动端在此补齐入口） -->
+        <form class="px-4 pt-3 pb-1" role="search" @submit.prevent="submitSearch">
+          <div class="relative">
+            <input
+              v-model="searchKeyword"
+              type="search"
+              placeholder="搜索教程"
+              aria-label="搜索教程"
+              class="w-full h-9 pl-8 pr-3 rounded-full bg-slate-100 border border-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-sky-300 transition-all"
+            />
+            <svg
+              class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.3-4.3" stroke-linecap="round" />
+            </svg>
+          </div>
+        </form>
+
         <nav class="max-w-5xl mx-auto px-4 py-2 flex flex-col text-slate-600">
           <template v-for="item in menuItems" :key="`m-${item.metadata.name}`">
             <div v-if="item.children.length > 0" class="border-b border-slate-100 last:border-0">
@@ -218,8 +241,37 @@
     </main>
 
     <!-- 页脚 -->
-    <footer class="bg-white border-t border-slate-200 py-6 mt-12">
-      <div class="max-w-5xl mx-auto px-4 text-center text-slate-500 text-sm space-y-3">
+    <footer class="bg-white border-t border-slate-200 py-10 mt-12">
+      <div class="max-w-5xl mx-auto px-4 text-center text-slate-500 text-sm space-y-4">
+        <!-- 品牌行 -->
+        <div
+          class="flex items-center justify-center gap-2 font-bold"
+          style="color: var(--color-primary)"
+        >
+          <img
+            v-if="siteLogo"
+            :src="siteLogo"
+            :alt="siteTitle"
+            referrerpolicy="no-referrer"
+            class="h-7 w-auto"
+          />
+          <svg
+            v-else
+            class="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="text-base">{{ siteTitle }}</span>
+        </div>
+
         <!-- 社交链接 -->
         <div v-if="socialLinks.length" class="flex items-center justify-center gap-4">
           <a
@@ -250,6 +302,9 @@
         </div>
       </div>
     </footer>
+
+    <!-- 返回顶部（长页刚需，全站可用） -->
+    <BackToTop />
   </div>
 </template>
 

@@ -1,12 +1,18 @@
 <template>
   <div class="flex gap-8">
+    <!-- 阅读进度条（仅阅读页挂载） -->
+    <ReadingProgress />
+
     <!-- 左侧：正文 TOC（桌面端） -->
     <aside class="hidden lg:block w-60 flex-shrink-0">
       <TocSidebar :toc="toc" :active-id="activeId" />
     </aside>
 
     <!-- 正文区域 -->
-    <article class="flex-1 min-w-0 bg-white rounded-lg border border-slate-200 px-6 py-8 md:px-10">
+    <article
+      ref="articleEl"
+      class="flex-1 min-w-0 bg-white rounded-lg border border-slate-200 px-6 py-8 md:px-10"
+    >
       <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-3">{{ post.spec.title }}</h1>
       <div
         class="flex flex-wrap items-center gap-3 text-sm text-slate-500 mb-6 pb-4 border-b border-slate-100"
@@ -29,7 +35,7 @@
             />
           </span>
         </span>
-        <span>发布于 {{ formatDate(post.status.publishTime) }}</span>
+        <span v-if="post.status.publishTime">发布于 {{ formatDate(post.status.publishTime) }}</span>
         <!-- 标签：链到 /tags/{slug} 归档页 -->
         <span
           v-for="tag in post.tags ?? []"
@@ -132,19 +138,31 @@ const chapterTotal = computed(
 );
 const isSeries = computed(() => !!props.series || !!props.chapter);
 
-// 先消毒正文（防存储型 XSS），再解析标题、注入 id、生成 TOC
-const { html: renderedHtml, toc } = extractToc(sanitizeHtml(props.rawContent || ""));
+// 先消毒正文（防存储型 XSS）、去除与文章标题重复的首个 h1（爬虫导入文常见），
+// 再解析标题、注入 id、生成 TOC。用 computed 包裹：站内换页复用组件时正文与 TOC 同步刷新
+const rendered = computed(() =>
+  extractToc(stripDuplicateTitle(sanitizeHtml(props.rawContent || ""), props.post.spec.title)),
+);
+const renderedHtml = computed(() => rendered.value.html);
+const toc = computed(() => rendered.value.toc);
+
+// 代码块增强：语法高亮 + 语言标签 + 复制按钮（highlight.js 客户端动态加载，不进首屏包）
+const articleEl = ref<HTMLElement | null>(null);
+const { enhance: enhanceCodeBlocks } = useCodeEnhance();
 
 // 滚动高亮当前标题
 const activeId = ref<string>("");
 let scrollHandler: (() => void) | null = null;
 
 onMounted(() => {
+  enhanceCodeBlocks(articleEl.value);
+  watch(renderedHtml, () => nextTick(() => enhanceCodeBlocks(articleEl.value)));
+
   scrollHandler = () => {
-    if (!toc.length) return;
+    if (!toc.value.length) return;
     // 找到当前视口顶部（导航栏下方 120px）之上、最靠下的标题
-    let current = toc[0].id;
-    for (const item of toc) {
+    let current = toc.value[0].id;
+    for (const item of toc.value) {
       const el = document.getElementById(item.id);
       if (!el) continue;
       const top = el.getBoundingClientRect().top;

@@ -50,7 +50,7 @@
             <NuxtLink
               v-if="firstPost"
               :to="`/categories/${category.spec.slug}/${firstPost.spec.slug}`"
-              class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-opacity hover:opacity-90"
+              class="press inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition-opacity hover:opacity-90"
               style="background: var(--color-primary, #0562a9)"
             >
               开始阅读

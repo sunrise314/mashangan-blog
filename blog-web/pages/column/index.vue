@@ -85,12 +85,12 @@ useHead({
   min-height: 100vh;
 }
 .column-hero {
-  background: linear-gradient(135deg, #0962a9 0%, #2b8ad4 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #2b8ad4 100%);
   color: #fff;
   padding: 44px 16px 40px;
 }
 .column-hero-inner {
-  max-width: 960px;
+  max-width: 1024px;
   margin: 0 auto;
 }
 .column-hero h1 {
@@ -105,7 +105,7 @@ useHead({
   line-height: 1.8;
 }
 .column-list {
-  max-width: 960px;
+  max-width: 1024px;
   margin: 0 auto;
   padding: 28px 16px 56px;
   display: grid;
@@ -130,7 +130,7 @@ useHead({
 .project-cover {
   position: relative;
   aspect-ratio: 16 / 8;
-  background: linear-gradient(135deg, #0962a9, #4d9bd8);
+  background: linear-gradient(135deg, var(--color-primary), #4d9bd8);
   overflow: hidden;
 }
 .project-cover img {
@@ -205,11 +205,11 @@ useHead({
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #0962a9;
+  color: var(--color-primary);
   font-weight: 500;
 }
 .column-empty {
-  max-width: 960px;
+  max-width: 1024px;
   margin: 0 auto;
   padding: 28px 16px 56px;
 }

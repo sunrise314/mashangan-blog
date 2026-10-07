@@ -62,7 +62,7 @@ const updatedLabel = computed(() => {
   padding: 4px 12px;
   border-radius: 999px;
   background: rgba(20, 111, 184, 0.14);
-  color: #0962a9;
+  color: var(--color-primary);
   font-size: 13px;
   font-weight: 500;
   line-height: 1.6;
@@ -71,7 +71,7 @@ const updatedLabel = computed(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #0962a9;
+  background: var(--color-primary);
   animation: interview-pulse 1.6s ease-in-out infinite;
 }
 @keyframes interview-pulse {

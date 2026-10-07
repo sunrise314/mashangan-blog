@@ -156,13 +156,13 @@ useHead({
   transition: all 0.15s;
 }
 .interview-switch-btn:hover {
-  color: #0962a9;
-  border-color: #0962a9;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 .interview-switch-btn--active,
 .interview-switch-btn--active:hover {
-  background: #0962a9;
-  border-color: #0962a9;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: #fff;
   font-weight: 500;
 }
@@ -217,14 +217,14 @@ useHead({
   transition: color 0.15s;
 }
 .interview-time-title:hover {
-  color: #0962a9;
+  color: var(--color-primary);
 }
 .interview-time-cat-badge {
   flex-shrink: 0;
   padding: 2px 10px;
   border-radius: 999px;
   background: rgba(20, 111, 184, 0.1);
-  color: #0962a9;
+  color: var(--color-primary);
   font-size: 12px;
   white-space: nowrap;
 }

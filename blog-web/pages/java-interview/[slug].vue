@@ -165,7 +165,7 @@ useHead(() => ({
   padding: 2px 10px;
   border-radius: 999px;
   background: rgba(20, 111, 184, 0.1);
-  color: #0962a9;
+  color: var(--color-primary);
   font-size: 12px;
   flex-shrink: 0;
 }

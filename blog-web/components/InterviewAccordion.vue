@@ -144,7 +144,7 @@ function toggle(name: string) {
   align-items: center;
   justify-content: center;
   background: rgba(20, 111, 184, 0.12);
-  color: #0962a9;
+  color: var(--color-primary);
 }
 .interview-category-title {
   margin: 0;
@@ -164,7 +164,7 @@ function toggle(name: string) {
   padding: 0 7px;
   border-radius: 999px;
   background: rgba(20, 111, 184, 0.14);
-  color: #0962a9;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 600;
   display: inline-flex;
@@ -222,7 +222,7 @@ function toggle(name: string) {
   transition: color 0.15s;
 }
 .interview-question-link:hover .interview-question-title {
-  color: #0962a9;
+  color: var(--color-primary);
 }
 .interview-question-empty {
   list-style: none;

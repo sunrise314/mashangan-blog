@@ -78,7 +78,7 @@ const joinUrl = zsxqConfig.joinUrl;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0962a9;
+  color: var(--color-primary);
   background: #fff;
   border: 1px solid #d6e9f8;
   box-shadow: 0 4px 14px rgba(9, 98, 169, 0.12);
@@ -102,7 +102,7 @@ const joinUrl = zsxqConfig.joinUrl;
   gap: 8px;
   padding: 12px 30px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #0962a9, #2b8ad4);
+  background: linear-gradient(135deg, var(--color-primary), #2b8ad4);
   color: #fff;
   font-size: 15px;
   font-weight: 600;
@@ -123,7 +123,7 @@ const joinUrl = zsxqConfig.joinUrl;
   display: inline-block;
   margin-top: 18px;
   font-size: 13px;
-  color: #0962a9;
+  color: var(--color-primary);
   text-decoration: none;
 }
 .paywall-back:hover {

@@ -16,6 +16,8 @@ export default defineNuxtConfig({
     },
   },
   app: {
+    // 页面切换过渡（减弱动效偏好下由 main.css 的 reduced-motion 兜底关闭）
+    pageTransition: { name: "page", mode: "out-in" },
     head: {
       htmlAttrs: { lang: "zh-CN" },
       title: "码上岸",

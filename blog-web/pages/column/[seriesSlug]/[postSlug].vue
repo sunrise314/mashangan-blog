@@ -35,7 +35,7 @@
           </svg>
           第 {{ chapter.order }} / {{ series.totalChapters }} 章 · 星球专属
         </span>
-        <span>发布于 {{ formatDate(post.status.publishTime) }}</span>
+        <span v-if="post.status.publishTime">发布于 {{ formatDate(post.status.publishTime) }}</span>
       </div>
 
       <div v-if="post.spec.cover" class="mb-8 rounded-lg overflow-hidden bg-slate-100">

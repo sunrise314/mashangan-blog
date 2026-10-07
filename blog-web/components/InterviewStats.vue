@@ -104,7 +104,7 @@ defineProps<{
 }
 .interview-stat-icon--blue {
   background: rgba(33, 150, 243, 0.1);
-  color: #0962a9;
+  color: var(--color-primary);
 }
 .interview-stat-icon--green {
   background: rgba(24, 121, 78, 0.1);

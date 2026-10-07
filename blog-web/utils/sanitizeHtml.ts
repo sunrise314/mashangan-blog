@@ -249,3 +249,29 @@ export function sanitizeHtml(html: string, allowed: Set<string> = ALLOWED_TAGS):
 export function sanitizeHighlight(html: string): string {
   return sanitizeHtml(html, new Set(["b"]));
 }
+
+/**
+ * 去除正文开头与文章标题重复的 h1（爬虫导入文常见：页面已渲染标题，正文又写一遍）。
+ * 仅当首个 h1 的文本与标题归一化后完全一致时移除，其余情况原样返回，避免误伤。
+ */
+export function stripDuplicateTitle(html: string, title: string): string {
+  if (!html || !title) return html;
+  const norm = (s: string) =>
+    s
+      .replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/\s+/g, "")
+      .trim();
+  const target = norm(title);
+  if (!target) return html;
+  const m = /^\s*<h1[^>]*>([\s\S]*?)<\/h1>/.exec(html);
+  if (m && norm(m[1]) === target) {
+    return html.slice(m[0].length);
+  }
+  return html;
+}

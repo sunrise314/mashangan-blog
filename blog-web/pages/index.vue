@@ -1,13 +1,19 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 py-8">
     <!-- 简洁标题区（无大 Hero）：标题/副标题由后台「站点设置 - 首页 Hero」控制 -->
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-slate-900">{{ homepageTitle }}</h1>
-      <p class="text-sm text-slate-500 mt-1">{{ homepageSubtitle }}</p>
+    <div class="mb-10">
+      <h1 class="text-3xl font-bold text-slate-900">{{ homepageTitle }}</h1>
+      <p class="text-sm text-slate-500 mt-1.5">{{ homepageSubtitle }}</p>
+      <!-- 站点统计：一行数字撑起门面感（数据与下方网格同源） -->
+      <div class="mt-3 flex items-center gap-2.5 text-sm text-slate-400">
+        <span>{{ categories?.length ?? 0 }} 个专栏</span>
+        <span class="w-1 h-1 rounded-full bg-slate-300" aria-hidden="true"></span>
+        <span>{{ posts?.length ?? 0 }} 篇教程</span>
+      </div>
     </div>
 
     <!-- 教程卡片：桌面四列、平板两列、手机单列 -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 stagger-in">
       <CategoryCard
         v-for="category in categories"
         :key="category.metadata.name"

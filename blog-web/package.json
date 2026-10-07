@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.15",
+    "highlight.js": "^11.12.0",
     "postgres": "^3.4.9"
   },
   "devDependencies": {
