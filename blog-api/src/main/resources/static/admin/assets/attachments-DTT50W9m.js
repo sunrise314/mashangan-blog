@@ -1,0 +1,1 @@
+import{J as i,y as t}from"./index-DOLyJn03.js";const e={list:()=>t("GET","/api/admin/attachments"),delete:a=>t("DELETE",`/api/admin/attachments/${a}`),upload:a=>i("/api/admin/attachments/upload",a)};export{e as a};

@@ -80,6 +80,8 @@ export interface SeriesCard {
   description: string;
   status: string; // updating | complete
   chapterCount: number;
+  /** 下架标记：true 时 /column 卡片列表过滤掉（sitemap/rss 仍包含该系列章节） */
+  hidden?: boolean;
 }
 
 export interface SeriesChapter {

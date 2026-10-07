@@ -12,6 +12,8 @@ export interface Series {
   /** 免费章节数，0 = 全部免费 */
   freeChapterCount?: number
   sortOrder?: number
+  /** 下架标记：true 时前台 /column 卡片列表不展示 */
+  hidden?: boolean
   createdAt?: string
   updatedAt?: string
 }
@@ -21,5 +23,6 @@ export const seriesApi = {
   get: (id: number) => api<Series>('GET', `/api/admin/series/${id}`),
   create: (s: Partial<Series>) => api<Series>('POST', '/api/admin/series', s),
   update: (id: number, s: Partial<Series>) => api<Series>('PUT', `/api/admin/series/${id}`, s),
-  delete: (id: number) => api<void>('DELETE', `/api/admin/series/${id}`),
+  delete: (id: number, force?: boolean) =>
+    api<void>('DELETE', `/api/admin/series/${id}${force ? '?force=true' : ''}`),
 }

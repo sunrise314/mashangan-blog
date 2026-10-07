@@ -30,6 +30,9 @@ public class Series {
 
     private Integer sortOrder;
 
+    /** 下架标记：true 时前台 /column 卡片列表不展示（详情页与 sitemap 不受影响） */
+    private Boolean hidden;
+
     private OffsetDateTime createdAt;
 
     private OffsetDateTime updatedAt;

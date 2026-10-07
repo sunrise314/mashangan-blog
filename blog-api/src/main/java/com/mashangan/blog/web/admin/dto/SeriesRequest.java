@@ -8,6 +8,7 @@ public record SeriesRequest(
         String description,
         String status,              // updating | complete
         Integer freeChapterCount,   // 免费章节数，0 = 全部免费
-        Integer sortOrder
+        Integer sortOrder,
+        Boolean hidden              // 下架标记：true 时前台 /column 卡片不展示
 ) {
 }

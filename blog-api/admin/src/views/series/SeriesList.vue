@@ -18,7 +18,7 @@
             <th style="width:90px">免费章节</th>
             <th style="width:70px">排序</th>
             <th style="width:150px">更新时间</th>
-            <th style="width:80px">操作</th>
+            <th style="width:190px">操作</th>
           </tr>
         </thead>
         <tbody>
@@ -26,6 +26,8 @@
             <td>
               {{ s.title }}
               <a v-if="s.slug" :href="`/column/${s.slug}`" target="_blank" style="color:#3b82f6;font-size:12px;margin-left:6px">前台查看</a>
+              <span v-if="s.hidden" class="badge badge-off"
+                    style="background:#94a3b8;color:#fff;margin-left:6px">已下架</span>
             </td>
             <td style="color:#666">{{ s.slug }}</td>
             <td>
@@ -37,7 +39,11 @@
             <td style="color:#666">{{ s.freeChapterCount ?? 0 }}</td>
             <td style="color:#666">{{ s.sortOrder ?? 0 }}</td>
             <td style="color:#666">{{ fmtTime(s.updatedAt) }}</td>
-            <td><button class="btn btn-sm btn-ghost" @click="openEdit(s)">编辑</button></td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-sm btn-ghost" @click="openEdit(s)">编辑</button>
+              <button class="btn btn-sm btn-ghost" @click="toggleHide(s)">{{ s.hidden ? '上架' : '下架' }}</button>
+              <button class="btn btn-sm btn-ghost" style="color:#dc2626" @click="remove(s)">删除</button>
+            </td>
           </tr>
           <tr v-if="!list.length && !error">
             <td colspan="7" style="color:#999;padding:16px 0">暂无专栏，点击右上角「新建专栏」创建。</td>
@@ -112,6 +118,37 @@ async function save() {
     editing.value = null
     reload()
   } catch (e: any) { error.value = e.message }
+}
+
+/** 下架/上架：必须传全量字段，后端对 null 会抹成默认值 */
+async function toggleHide(s: Series) {
+  error.value = ''; saved.value = ''
+  if (!s.id) return
+  try {
+    await seriesApi.update(s.id, { ...s, hidden: !s.hidden })
+    saved.value = s.hidden ? '已上架' : '已下架（前台 /column 卡片不再展示，章节页与收录不受影响）'
+    reload()
+  } catch (e: any) { error.value = e.message }
+}
+
+async function remove(s: Series) {
+  error.value = ''; saved.value = ''
+  if (!s.id) return
+  if (!confirm(`确定删除专栏「${s.title}」？`)) return
+  try {
+    await seriesApi.delete(s.id)
+    saved.value = '已删除'
+    reload()
+  } catch (e: any) {
+    // 409：有章节关联，后端消息含引用方列表，二次确认后强制删除（文章保留、仅解除关联）
+    if (confirm(e.message + '\n\n是否解除关联并强制删除？')) {
+      try {
+        await seriesApi.delete(s.id, true)
+        saved.value = '已删除（章节关联已解除，文章保留）'
+        reload()
+      } catch (e2: any) { error.value = e2.message }
+    }
+  }
 }
 
 function fmtTime(s?: string) {

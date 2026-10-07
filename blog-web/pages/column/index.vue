@@ -69,9 +69,13 @@ import type { SeriesCard } from "~/types/halo";
 
 const { getSeries } = useHaloApi();
 
-const { data: series, pending } = await useAsyncData<SeriesCard[]>("series-cards", () =>
+const { data: seriesList, pending } = await useAsyncData<SeriesCard[]>("series-cards", () =>
   getSeries(),
 );
+
+// 已下架（hidden）的系列不进「项目实战」卡片列表；
+// 章节页 /column/{series}/{chapter} 与 sitemap/rss 不受影响
+const series = computed(() => (seriesList.value ?? []).filter((s) => !s.hidden));
 
 useHead({
   title: "项目实战",

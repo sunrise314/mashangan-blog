@@ -7,6 +7,7 @@ public record SeriesCard(
         String cover,
         String description,
         String status,        // updating | complete
-        int chapterCount
+        int chapterCount,
+        boolean hidden        // 下架标记：true 时前台 /column 卡片列表过滤掉（sitemap/rss 仍包含）
 ) {
 }

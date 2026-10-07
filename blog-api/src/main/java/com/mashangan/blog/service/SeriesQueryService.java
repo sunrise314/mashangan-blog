@@ -49,7 +49,8 @@ public class SeriesQueryService {
         }
         return all.stream().map(s -> new SeriesCard(
                 s.getSlug(), s.getTitle(), s.getCover(), s.getDescription(),
-                s.getStatus(), cntBySeries.getOrDefault(s.getId(), 0))).toList();
+                s.getStatus(), cntBySeries.getOrDefault(s.getId(), 0),
+                Boolean.TRUE.equals(s.getHidden()))).toList();
     }
 
     public Series getBySlug(String slug) {
