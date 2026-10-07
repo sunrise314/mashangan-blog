@@ -34,13 +34,15 @@
         </NuxtLink>
 
         <!-- 桌面端导航 -->
-        <nav class="hidden md:flex items-center gap-1 text-slate-600">
+        <nav
+          class="hidden lg:flex items-center gap-1 text-sm whitespace-nowrap text-slate-600"
+        >
           <template v-for="item in menuItems" :key="item.metadata.name">
             <!-- 含子菜单 -->
             <div v-if="item.children.length > 0" class="relative group">
               <button
                 type="button"
-                class="flex items-center gap-1 px-3 py-2 rounded-md transition-colors hover:text-[#0562a9]"
+                class="flex items-center gap-1 px-2 lg:px-2.5 rounded-md transition-colors hover:text-[#0562a9]"
               >
                 {{ itemName(item) }}
                 <svg
@@ -88,7 +90,7 @@
               :to="normalizeHref(itemHref(item))"
               @mouseenter="prefetchOnHover(item)"
               :class="[
-                'px-3 py-2 rounded-md transition-colors hover:text-[#0562a9]',
+                'px-2 lg:px-2.5 rounded-md transition-colors hover:text-[#0562a9]',
                 isActive(itemHref(item)) ? 'text-[#0562a9] font-medium' : '',
               ]"
             >
@@ -101,7 +103,7 @@
               :href="itemHref(item)"
               :target="item.spec.target || '_blank'"
               rel="noopener noreferrer"
-              class="px-3 py-2 rounded-md transition-colors hover:text-[#0562a9]"
+              class="px-2 lg:px-2.5 rounded-md transition-colors hover:text-[#0562a9]"
             >
               {{ itemName(item) }}
             </a>
@@ -109,14 +111,14 @@
         </nav>
 
         <!-- 桌面端搜索入口 -->
-        <form class="hidden md:flex items-center" role="search" @submit.prevent="submitSearch">
+        <form class="hidden lg:flex items-center" role="search" @submit.prevent="submitSearch">
           <div class="relative">
             <input
               v-model="searchKeyword"
               type="search"
               placeholder="搜索教程"
               aria-label="搜索教程"
-              class="w-40 lg:w-52 h-8 pl-8 pr-3 rounded-full bg-slate-100 border border-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-sky-300 transition-all"
+              class="w-44 lg:w-52 h-8 pl-8 pr-3 rounded-full bg-slate-100 border border-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-sky-300 transition-all"
             />
             <svg
               class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
@@ -134,7 +136,7 @@
         <!-- 移动端菜单按钮 -->
         <button
           type="button"
-          class="md:hidden p-2 -mr-2 text-slate-600 hover:text-[#0562a9]"
+          class="lg:hidden p-2 -mr-2 text-slate-600 hover:text-[#0562a9]"
           aria-label="切换导航菜单"
           @click="mobileOpen = !mobileOpen"
         >
@@ -162,8 +164,8 @@
       </div>
 
       <!-- 移动端导航面板 -->
-      <div v-if="mobileOpen" class="md:hidden border-t border-slate-200 bg-white">
-        <!-- 移动端搜索（桌面搜索框为 hidden md:flex，移动端在此补齐入口） -->
+      <div v-if="mobileOpen" class="lg:hidden border-t border-slate-200 bg-white">
+        <!-- 移动端搜索（桌面搜索框为 hidden lg:flex，移动端在此补齐入口） -->
         <form class="px-4 pt-3 pb-1" role="search" @submit.prevent="submitSearch">
           <div class="relative">
             <input
