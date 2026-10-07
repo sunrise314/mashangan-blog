@@ -94,6 +94,18 @@
 
         <div class="card">
           <div class="form-row">
+            <label>标签（点击选择，可多选）</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <button v-for="t in allTags" :key="t.haloName" type="button"
+                      class="tag-pick" :class="{ on: formTags.includes(t.haloName) }"
+                      @click="toggleTag(t.haloName)">{{ t.displayName }}</button>
+              <span v-if="!allTags.length" style="color:#999;font-size:12px">暂无标签，可到「标签管理」新建</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="form-row">
             <label>可见性</label>
             <select v-model="form.visible">
               <option value="PUBLIC">公开</option>
@@ -155,7 +167,7 @@ import { htmlToMarkdown } from '../../components/editor/htmlToMarkdown'
 import { postsApi } from '../../api/posts'
 import { categoriesApi, type Category } from '../../api/categories'
 import { attachmentsApi, type Attachment } from '../../api/attachments'
-import { uploadFile } from '../../api/client'
+import { api, uploadFile } from '../../api/client'
 
 const route = useRoute()
 const router = useRouter()
@@ -168,6 +180,15 @@ const form = ref({
 })
 const formCategories = ref<string[]>([])
 const categories = ref<Category[]>([])
+// 标签：halo_name 列表（与后端 PostRequest.tags 对齐）
+const formTags = ref<string[]>([])
+const allTags = ref<{ id: number; haloName: string; displayName: string }[]>([])
+
+function toggleTag(haloName: string) {
+  const i = formTags.value.indexOf(haloName)
+  if (i >= 0) formTags.value.splice(i, 1)
+  else formTags.value.push(haloName)
+}
 const saving = ref(false)
 const saved = ref(false)
 const error = ref('')
@@ -356,7 +377,7 @@ async function save(publish: boolean) {
       excerpt: form.value.excerpt,
       content: md,
       categories: formCategories.value,
-      tags: [],
+      tags: formTags.value,
       published: publish || form.value.published,
       pinned: form.value.pinned,
       priority: 0,
@@ -385,6 +406,7 @@ onBeforeUnmount(() => {
 
 ;(async () => {
   categories.value = await categoriesApi.list()
+  try { allTags.value = await api('GET', '/api/admin/tags') } catch { allTags.value = [] }
   if (id) {
     const p = await postsApi.get(id)
     form.value.title = p.title
@@ -395,9 +417,28 @@ onBeforeUnmount(() => {
     form.value.published = !!p.published
     form.value.pinned = !!p.pinned
     formCategories.value = p.categories || []
+    formTags.value = p.tags || []
     // Markdown 源文 → HTML 给编辑器
     const html = await marked.parse(p.content || '')
     editor.value?.commands.setContent(html)
   }
 })()
 </script>
+
+<style scoped>
+.tag-pick {
+  padding: 3px 10px;
+  font-size: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+}
+.tag-pick.on {
+  background: #e0f0fb;
+  border-color: #7cc0ec;
+  color: #0562a9;
+  font-weight: 600;
+}
+</style>
