@@ -57,7 +57,12 @@ public class Post {
     private OffsetDateTime publishTime;
 
     /** 所属系列/项目 ID，可空 */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private Long seriesId;
+
+    /** 单章免费覆盖：NULL=跟随系列规则, 1=强制免费, 0=强制锁定；编辑页切回跟随规则需写入 NULL */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
+    private Integer freeOverride;
 
     private OffsetDateTime createdAt;
 

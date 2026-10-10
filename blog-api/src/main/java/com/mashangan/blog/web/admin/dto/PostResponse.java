@@ -22,6 +22,7 @@ public record PostResponse(
         List<String> categories,
         List<String> tags,
         Long seriesId,
+        Integer freeOverride,
         OffsetDateTime publishTime,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt

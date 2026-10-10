@@ -23,6 +23,7 @@
           <tr>
             <th>标题</th>
             <th>状态</th>
+            <th>系列</th>
             <th>分类</th>
             <th>更新时间</th>
             <th style="width:160px">操作</th>
@@ -47,6 +48,7 @@
               </span>
               <span v-if="p.pinned" class="badge badge-on" style="margin-left:4px">置顶</span>
             </td>
+            <td style="color:#475569;font-size:13px">{{ p.seriesId ? (seriesTitles[p.seriesId] || '#' + p.seriesId) : '—' }}</td>
             <td style="color:#666">{{ (p.categories || []).join(', ') }}</td>
             <td style="color:#888;font-size:13px">{{ fmt(p.updatedAt) }}</td>
             <td>
@@ -162,6 +164,7 @@ import { ref, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import LayoutShell from '../../components/LayoutShell.vue'
 import { postsApi, type Post } from '../../api/posts'
+import { seriesApi } from '../../api/series'
 import { categoriesApi, type Category } from '../../api/categories'
 import { api } from '../../api/client'
 
@@ -176,6 +179,8 @@ const totalPages = ref(1)
 const keyword = ref('')
 const trashView = ref(false)
 const categories = ref<Category[]>([])
+// 系列归属展示：id→标题 映射（一次拉全量）
+const seriesTitles = ref<Record<number, string>>({})
 
 async function reload() {
   const r = await postsApi.list(page.value, size, keyword.value || undefined, trashView.value)
@@ -183,6 +188,12 @@ async function reload() {
   total.value = r.total
   totalPages.value = r.pages || 1
 }
+
+seriesApi.list().then(list => {
+  const map: Record<number, string> = {}
+  for (const s of list) if (s.id) map[s.id] = s.title
+  seriesTitles.value = map
+}).catch(() => { })
 
 function goNew() { router.push('/admin/posts/new') }
 function goEdit(id: number) { router.push(`/admin/posts/${id}`) }

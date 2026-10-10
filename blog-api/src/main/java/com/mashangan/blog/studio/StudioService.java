@@ -186,7 +186,7 @@ public class StudioService {
             // 5. 创建或更新文章
             progress(task, "publish", 72, "正在创建文章…");
             PostRequest req = new PostRequest(title, slug, task.coverUrl, finalMd,
-                    "", catHaloNames, List.of(), true, false, 0, "PUBLIC", true, null);
+                    "", catHaloNames, List.of(), true, false, 0, "PUBLIC", true, null, null);
             PostResponse existing = findBySlug(slug);
             PostResponse saved;
             if (existing != null) {

@@ -94,6 +94,28 @@
 
         <div class="card">
           <div class="form-row">
+            <label>所属系列</label>
+            <select v-model="formSeriesId" @change="onSeriesChange">
+              <option value="">不归属系列</option>
+              <option v-for="s in seriesList" :key="s.id" :value="String(s.id)">
+                {{ s.title }}{{ s.hidden ? '（已下架）' : '' }}
+              </option>
+            </select>
+            <div class="cover-hint" v-if="formSeriesId">挂入系列后按发布时间自动排章节序，无需手动填序号</div>
+          </div>
+          <div class="form-row">
+            <label>本章访问</label>
+            <select v-model="formFree" :disabled="!formSeriesId">
+              <option value="">跟随系列规则（系列管理里配置免费章节数）</option>
+              <option value="1">强制免费</option>
+              <option value="0">强制锁定（星球专享）</option>
+            </select>
+            <div class="cover-hint" v-if="!formSeriesId">文章未归属系列，此选项不生效</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="form-row">
             <label>标签（点击选择，可多选）</label>
             <div style="display:flex;flex-wrap:wrap;gap:6px">
               <button v-for="t in allTags" :key="t.haloName" type="button"
@@ -165,6 +187,7 @@ import LayoutShell from '../../components/LayoutShell.vue'
 import lowlight from '../../components/editor/lowlight'
 import { htmlToMarkdown } from '../../components/editor/htmlToMarkdown'
 import { postsApi } from '../../api/posts'
+import { seriesApi, type Series } from '../../api/series'
 import { categoriesApi, type Category } from '../../api/categories'
 import { attachmentsApi, type Attachment } from '../../api/attachments'
 import { api, uploadFile } from '../../api/client'
@@ -188,6 +211,14 @@ function toggleTag(haloName: string) {
   const i = formTags.value.indexOf(haloName)
   if (i >= 0) formTags.value.splice(i, 1)
   else formTags.value.push(haloName)
+}
+
+// 系列归属与单章免费覆盖（select 用字符串哨兵，保存时转换）
+const seriesList = ref<Series[]>([])
+const formSeriesId = ref('')
+const formFree = ref('')
+function onSeriesChange() {
+  if (!formSeriesId.value) formFree.value = ''
 }
 const saving = ref(false)
 const saved = ref(false)
@@ -383,6 +414,10 @@ async function save(publish: boolean) {
       priority: 0,
       visible: form.value.visible,
       allowComment: true,
+      seriesId: formSeriesId.value ? Number(formSeriesId.value) : null,
+      freeOverride: formSeriesId.value
+        ? (formFree.value === '' ? null : Number(formFree.value))
+        : null,
     }
     if (isNew) {
       const p = await postsApi.create(payload)
@@ -407,6 +442,7 @@ onBeforeUnmount(() => {
 ;(async () => {
   categories.value = await categoriesApi.list()
   try { allTags.value = await api('GET', '/api/admin/tags') } catch { allTags.value = [] }
+  try { seriesList.value = await seriesApi.list() } catch { seriesList.value = [] }
   if (id) {
     const p = await postsApi.get(id)
     form.value.title = p.title
@@ -418,6 +454,8 @@ onBeforeUnmount(() => {
     form.value.pinned = !!p.pinned
     formCategories.value = p.categories || []
     formTags.value = p.tags || []
+    formSeriesId.value = p.seriesId ? String(p.seriesId) : ''
+    formFree.value = p.freeOverride == null ? '' : String(p.freeOverride)
     // Markdown 源文 → HTML 给编辑器
     const html = await marked.parse(p.content || '')
     editor.value?.commands.setContent(html)

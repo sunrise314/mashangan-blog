@@ -14,6 +14,8 @@ export interface Post {
   priority: number
   visible: string
   allowComment: boolean
+  seriesId?: number | null
+  freeOverride?: number | null  // 单章免费覆盖：null=跟随系列规则, 1=强制免费, 0=强制锁定
   updatedAt?: string
   createdAt?: string
 }

@@ -92,8 +92,9 @@ public class AdminPostService {
     /** 软删除：移入回收站（公开查询已过滤 deleted=true） */
     @Transactional
     public void delete(Long id) {
-        Post post = new Post();
-        post.setId(id);
+        // 先加载完整实体再更新：seriesId/freeOverride 为 ALWAYS 策略，部分构造会把这两列清空
+        Post post = postMapper.selectById(id);
+        if (post == null) return;
         post.setDeleted(true);
         postMapper.updateById(post);
         cachePurgeService.purgeAll();
@@ -211,6 +212,7 @@ public class AdminPostService {
         post.setVisible(req.visible() != null ? req.visible() : "PUBLIC");
         post.setAllowComment(req.allowComment() == null || req.allowComment());
         post.setSeriesId(req.seriesId());
+        post.setFreeOverride(req.freeOverride());
         post.setDeleted(false);
         if (isNew) {
             post.setHaloName(generateHaloName(req.slug()));
@@ -320,7 +322,7 @@ public class AdminPostService {
                 p.getRawType(), p.getPublished(), p.getPinned(), p.getPriority(),
                 p.getVisible(), p.getAllowComment(),
                 cats != null ? cats : List.of(), tags != null ? tags : List.of(),
-                p.getSeriesId(),
+                p.getSeriesId(), p.getFreeOverride(),
                 p.getPublishTime(), p.getCreatedAt(), p.getUpdatedAt());
     }
 }

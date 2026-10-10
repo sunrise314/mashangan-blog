@@ -70,7 +70,7 @@ public class SeriesQueryService {
             Post p = posts.get(i);
             ordered.add(new SeriesDetail.Chapter(
                     p.getHaloName(), p.getTitle(), p.getSlug(), p.getCover(), p.getExcerpt(),
-                    i < freeCount, i + 1));
+                    isChapterFree(p, i + 1, freeCount), i + 1));
         }
         return new SeriesDetail(series.getSlug(), series.getTitle(), series.getCover(),
                 series.getDescription(), series.getStatus(), freeCount, ordered.size(), ordered);
@@ -101,10 +101,23 @@ public class SeriesQueryService {
             }
         }
         int freeCount = series.getFreeChapterCount() == null ? 0 : series.getFreeChapterCount();
-        // order=0（理论上不该发生）按锁定处理，兜底防泄露
-        boolean locked = order == 0 || order > freeCount;
+        // 统一口径：isChapterFree 内含 order=0 fail-closed 与单章覆盖
+        boolean locked = !isChapterFree(post, order, freeCount);
         return new ChapterAccess(series.getSlug(), series.getTitle(),
                 freeCount, order, chapters.size(), locked);
+    }
+
+    /**
+     * 单章免费判定（order 从 1 计）：
+     * order<=0 一律锁定（fail-closed 兜底，覆盖不生效）；
+     * freeOverride=1 强制免费 / 0 强制锁定；NULL 跟随系列规则（前 freeCount 章免费）。
+     * getDetail（章节列表标记）与 accessOf（正文付费墙）必须共用本方法，防止口径漂移。
+     */
+    private static boolean isChapterFree(Post p, int order, int freeCount) {
+        if (order <= 0) return false;
+        Integer override = p.getFreeOverride();
+        if (override != null) return override == 1;
+        return order <= freeCount;
     }
 
     /** 付费墙判定载体 */

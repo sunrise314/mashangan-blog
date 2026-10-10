@@ -16,6 +16,7 @@ public record PostRequest(
         Integer priority,
         String visible,
         Boolean allowComment,
-        Long seriesId             // 所属项目/系列 ID，可空
+        Long seriesId,            // 所属项目/系列 ID，可空
+        Integer freeOverride      // 单章免费覆盖：NULL=跟随系列规则, 1=强制免费, 0=强制锁定
 ) {
 }
