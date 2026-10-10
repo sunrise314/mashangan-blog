@@ -6,6 +6,8 @@ import type {
   HaloPostDetail,
   HaloSearchHit,
   HaloSinglePage,
+  IndustryDetail,
+  IndustryProjectDetail,
   SeriesCard,
   SeriesDetail,
   TagCard,
@@ -213,6 +215,23 @@ export function useHaloApi() {
     return await apiFetch<SeriesCard[]>("/series");
   }
 
+  /** 行业项目地图：全部行业 + 各行业项目（已开更 + 筹备中） */
+  async function getIndustries(): Promise<IndustryDetail[]> {
+    return await apiFetch<IndustryDetail[]>("/industries");
+  }
+
+  /** 单个行业详情（含项目卡片） */
+  async function getIndustryBySlug(slug: string): Promise<IndustryDetail> {
+    return await apiFetch<IndustryDetail>(`/industries/${encodeURIComponent(slug)}`);
+  }
+
+  /** 项目详情 + 面试考点清单（筹备中项目落地页） */
+  async function getIndustryProject(industrySlug: string, projectSlug: string): Promise<IndustryProjectDetail> {
+    return await apiFetch<IndustryProjectDetail>(
+      `/industries/${encodeURIComponent(industrySlug)}/projects/${encodeURIComponent(projectSlug)}`,
+    );
+  }
+
   /** 项目大纲：系列元信息 + 章节列表（含免费/付费标记） */
   async function getSeriesDetail(slug: string): Promise<SeriesDetail> {
     return await apiFetch<SeriesDetail>(`/series/${encodeURIComponent(slug)}`);
@@ -251,6 +270,9 @@ export function useHaloApi() {
     findAnyPostBySlug,
     getSeries,
     getSeriesDetail,
+    getIndustries,
+    getIndustryBySlug,
+    getIndustryProject,
     getTags,
     getPostsByTagPage,
   };

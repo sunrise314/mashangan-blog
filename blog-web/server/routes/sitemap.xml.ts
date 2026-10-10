@@ -19,6 +19,11 @@ interface SeriesDetailItem {
   chapters: Array<{ slug: string }>;
 }
 
+interface IndustryItem {
+  slug: string;
+  projects: Array<{ slug: string; open: boolean }>;
+}
+
 interface HaloPageResult {
   items: Array<Record<string, unknown>>;
   totalPages: number;
@@ -58,12 +63,14 @@ export default defineEventHandler(async (event) => {
   ];
 
   try {
-    const [posts, categories, pages, seriesCards] = await Promise.all([
+    const [posts, categories, pages, seriesCards, industryMap] = await Promise.all([
       fetchAllPages<SeoPostItem>(apiBase, `${contentBase}/posts`),
       fetchAllPages<HaloCategoryItem>(apiBase, `${contentBase}/categories`, 200),
       fetchAllPages<HaloSinglePageItem>(apiBase, `${contentBase}/singlepages`),
       // 系列章节不在全局 /posts 列表中，须单独拉取（失败不影响其余部分）
       $fetch<SeriesCardItem[]>(`${apiBase}${contentBase}/series`).catch(() => [] as SeriesCardItem[]),
+      // 行业项目地图（失败不影响其余部分）
+      $fetch<IndustryItem[]>(`${apiBase}${contentBase}/industries`).catch(() => [] as IndustryItem[]),
     ]);
 
     // 系列章节 → /column/{series}/{chapter}（付费墙页面有摘要，可被收录引导订阅）
@@ -81,6 +88,20 @@ export default defineEventHandler(async (event) => {
         }
       } catch (e) {
         console.error(`[sitemap] fetch series ${s.slug} failed:`, e);
+      }
+    }
+
+    // 行业地图：行业页 + 筹备中项目的考点清单页
+    // （已开更项目的 canonical 是 /column/{seriesSlug} 系列页，考点页不重复收录）
+    for (const ind of industryMap) {
+      urls.push({ loc: `${siteUrl}/column/industry/${encodeURIComponent(ind.slug)}`, lastmod: now });
+      for (const p of ind.projects ?? []) {
+        if (!p.open) {
+          urls.push({
+            loc: `${siteUrl}/column/industry/${encodeURIComponent(ind.slug)}/${encodeURIComponent(p.slug)}`,
+            lastmod: now,
+          });
+        }
       }
     }
 

@@ -6,6 +6,7 @@ import com.mashangan.blog.domain.entity.Post;
 import com.mashangan.blog.domain.entity.SinglePage;
 import com.mashangan.blog.domain.entity.Tag;
 import com.mashangan.blog.service.CategoryQueryService;
+import com.mashangan.blog.service.IndustryProjectService;
 import com.mashangan.blog.service.PostQueryService;
 import com.mashangan.blog.service.SeriesQueryService;
 import com.mashangan.blog.service.SinglePageQueryService;
@@ -14,6 +15,8 @@ import com.mashangan.blog.web.halo.dto.HaloCategory;
 import com.mashangan.blog.web.halo.dto.HaloPageResult;
 import com.mashangan.blog.web.halo.dto.HaloPost;
 import com.mashangan.blog.web.halo.dto.HaloSinglePage;
+import com.mashangan.blog.web.halo.dto.IndustryDetail;
+import com.mashangan.blog.web.halo.dto.ProjectDetail;
 import com.mashangan.blog.web.halo.dto.SeriesCard;
 import com.mashangan.blog.web.halo.dto.SeriesDetail;
 import com.mashangan.blog.web.halo.dto.TagCard;
@@ -42,11 +45,31 @@ public class PublicContentController {
     private final SinglePageQueryService singlePageQueryService;
     private final SeriesQueryService seriesQueryService;
     private final TagQueryService tagQueryService;
+    private final IndustryProjectService industryProjectService;
 
     /** 项目实战卡片列表（一个卡片 = 一个系列/项目） */
     @GetMapping("/series")
     public List<SeriesCard> series() {
         return seriesQueryService.listCards();
+    }
+
+    /** 行业项目地图：全部行业 + 各行业项目（已开更 + 筹备中），/column 总览一次拉全做前端筛选 */
+    @GetMapping("/industries")
+    public List<IndustryDetail> industries() {
+        return industryProjectService.listIndustryDetails();
+    }
+
+    /** 单个行业详情（含项目卡片），行业页 /column/industry/{slug} 使用 */
+    @GetMapping("/industries/{slug}")
+    public IndustryDetail industryDetail(@PathVariable("slug") String slug) {
+        return industryProjectService.getIndustryDetail(slug);
+    }
+
+    /** 项目详情 + 面试考点清单，筹备中项目落地页 /column/industry/{industry}/{project} 使用 */
+    @GetMapping("/industries/{industrySlug}/projects/{projectSlug}")
+    public ProjectDetail industryProjectDetail(@PathVariable("industrySlug") String industrySlug,
+                                               @PathVariable("projectSlug") String projectSlug) {
+        return industryProjectService.getProjectDetail(industrySlug, projectSlug);
     }
 
     /** 项目大纲页：系列元信息 + 章节列表（含免费/付费标记） */

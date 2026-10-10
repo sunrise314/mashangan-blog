@@ -84,6 +84,46 @@ export interface SeriesCard {
   hidden?: boolean;
 }
 
+/** 行业项目地图：行业下的项目卡片（open=true 已开更挂真实系列，false 筹备中） */
+export interface IndustryProjectCard {
+  slug: string;
+  title: string;
+  jdFreq: string; // 高频 | 中频
+  summary: string;
+  open: boolean;
+  seriesSlug?: string | null;
+  seriesTitle?: string | null;
+  examPointCount: number;
+}
+
+/** 一个行业 + 其下全部项目（/column 总览与行业页共用） */
+export interface IndustryDetail {
+  slug: string;
+  name: string;
+  intro: string;
+  projects: IndustryProjectCard[];
+}
+
+/** 项目详情 + 面试考点清单（筹备中项目落地页） */
+export interface ProjectExamPoint {
+  sort: number;
+  point: string;
+  detail: string;
+}
+
+export interface IndustryProjectDetail {
+  slug: string;
+  title: string;
+  jdFreq: string;
+  summary: string;
+  open: boolean;
+  seriesSlug?: string | null;
+  seriesTitle?: string | null;
+  industrySlug: string;
+  industryName: string;
+  examPoints: ProjectExamPoint[];
+}
+
 export interface SeriesChapter {
   name: string; // halo_name
   title: string;

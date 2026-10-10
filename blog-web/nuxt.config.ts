@@ -53,6 +53,8 @@ export default defineNuxtConfig({
       "/java-interview/**": { swr: 300 },
       "/tools": { swr: 300 },
       "/column": { swr: 120 },
+      // 行业地图路由 slug 全 ASCII（建库约定），可安全开 swr
+      "/column/industry/**": { swr: 600 },
       "/zsxq": { swr: 300 },
       "/search": { swr: 30 },
       // 标签路由 slug 全部为 ASCII（建库约定），可安全开 swr
