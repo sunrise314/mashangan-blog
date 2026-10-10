@@ -1,5 +1,5 @@
 /**
- * 看板汇总接口：概览(PV/UV/在线) + 7 日趋势 + TOP 来源/搜索词/页面/设备/地区。
+ * 看板汇总接口：概览(PV/UV/在线) + 7 日趋势 + TOP 来源/搜索引擎/页面/设备/地区。
  * 最新访问已拆分到 /api/analytics/visits 分页接口。
  * 鉴权：header x-analytics-token 与环境变量 ANALYTICS_PASSWORD 一致。
  */
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
     online,
     trend,
     topRefs,
-    topKws,
+    refRows,
     topPages,
     topBrowsers,
     topOss,
@@ -82,15 +82,26 @@ export default defineEventHandler(async (event) => {
         WHERE type = 'pv' AND ts >= ${weekStart} AND ref <> ''
         GROUP BY k ORDER BY c DESC LIMIT 10`,
     sql`
-        SELECT kw AS k, count(*)::int AS c FROM visits
-        WHERE type = 'pv' AND ts >= ${weekStart} AND kw <> ''
-        GROUP BY k ORDER BY c DESC LIMIT 10`,
+        SELECT ref, count(*)::int AS c FROM visits
+        WHERE type = 'pv' AND ts >= ${weekStart} AND ref <> ''
+        GROUP BY ref ORDER BY c DESC LIMIT 200`,
     topBy("path"),
     topBy("browser"),
     topBy("os"),
     topBy("device"),
     topBy("region"),
   ]);
+
+  // 搜索引擎来源：referrer 只剩 origin，无法解析关键词，按引擎聚合（百度/必应/谷歌…）
+  const engineCount = new Map<string, number>();
+  for (const r of refRows) {
+    const engine = parseEngine(r.ref);
+    if (engine) engineCount.set(engine, (engineCount.get(engine) ?? 0) + r.c);
+  }
+  const topEngines = [...engineCount.entries()]
+    .map(([k, c]) => ({ k, c }))
+    .sort((a, b) => b.c - a.c)
+    .slice(0, 10);
 
   return {
     enabled: true,
@@ -99,7 +110,7 @@ export default defineEventHandler(async (event) => {
     online: online[0]?.c ?? 0,
     trend,
     topRefs,
-    topKws,
+    topEngines,
     topPages,
     topBrowsers,
     topOss,

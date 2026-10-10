@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { searchXdbRaw, formatRegion, parseUa, parseKw } from "../server/utils/analytics-intel.ts";
+import { searchXdbRaw, formatRegion, parseUa, parseKw, parseEngine } from "../server/utils/analytics-intel.ts";
 
 const xdb = readFileSync(join(import.meta.dirname, "../server/assets/ip2region.xdb"));
 
@@ -83,4 +83,17 @@ test("搜索引擎关键词提取", () => {
   assert.equal(parseKw("https://example.com/page?wd=not-engine"), "");
   assert.equal(parseKw("not a url"), "");
   assert.equal(parseKw(""), "");
+});
+
+test("搜索引擎来源识别", () => {
+  assert.equal(parseEngine("https://www.baidu.com/"), "百度");
+  assert.equal(parseEngine("https://m.baidu.com/"), "百度");
+  assert.equal(parseEngine("https://cn.bing.com/search?q=x"), "必应");
+  assert.equal(parseEngine("https://www.google.com.hk/"), "谷歌");
+  assert.equal(parseEngine("https://www.sogou.com/web?query=x"), "搜狗");
+  assert.equal(parseEngine("https://www.so.com/s?q=x"), "360搜索");
+  assert.equal(parseEngine("https://example.com/?wd=x"), "");
+  assert.equal(parseEngine("https://www.mashangan.com/"), "");
+  assert.equal(parseEngine("not a url"), "");
+  assert.equal(parseEngine(""), "");
 });

@@ -46,10 +46,10 @@
           </div>
         </div>
 
-        <!-- TOP 来源 / 搜索词 -->
+        <!-- TOP 来源 / 搜索引擎 -->
         <div class="grid grid-2-inner">
           <TopList title="TOP 来源域名" :rows="summary.topRefs ?? []" empty="暂无外部来源" />
-          <TopList title="TOP 搜索关键词" :rows="summary.topKws ?? []" empty="暂无搜索词" />
+          <TopList title="搜索引擎来源" :rows="summary.topEngines ?? []" empty="暂无搜索引擎来源" />
         </div>
       </div>
 
@@ -174,7 +174,7 @@ interface Summary {
   online?: number
   trend?: Array<{ d: string; pv: number; uv: number }>
   topRefs?: TopRow[]
-  topKws?: TopRow[]
+  topEngines?: TopRow[]
   topPages?: TopRow[]
   topBrowsers?: TopRow[]
   topOss?: TopRow[]

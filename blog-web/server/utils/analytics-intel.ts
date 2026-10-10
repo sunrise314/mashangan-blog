@@ -162,16 +162,32 @@ export function parseUa(ua: string): { browser: string; os: string; device: stri
   return { browser, os, device };
 }
 
-const SEARCH_ENGINES: Array<{ host: RegExp; params: string[] }> = [
-  { host: /baidu\.com$/i, params: ["wd", "word", "kw", "q"] },
-  { host: /bing\.com$/i, params: ["q"] },
-  { host: /google\./i, params: ["q"] },
-  { host: /sogou\.com$/i, params: ["query", "kw", "q"] },
-  { host: /so\.com$/i, params: ["q"] },
-  { host: /sm\.cn$/i, params: ["q"] },
-  { host: /yandex\./i, params: ["text"] },
-  { host: /duckduckgo\./i, params: ["q"] },
+const SEARCH_ENGINES: Array<{ host: RegExp; params: string[]; name: string }> = [
+  { host: /baidu\.com$/i, params: ["wd", "word", "kw", "q"], name: "百度" },
+  { host: /bing\.com$/i, params: ["q"], name: "必应" },
+  { host: /google\./i, params: ["q"], name: "谷歌" },
+  { host: /sogou\.com$/i, params: ["query", "kw", "q"], name: "搜狗" },
+  { host: /so\.com$/i, params: ["q"], name: "360搜索" },
+  { host: /sm\.cn$/i, params: ["q"], name: "神马" },
+  { host: /yandex\./i, params: ["text"], name: "Yandex" },
+  { host: /duckduckgo\./i, params: ["q"], name: "DuckDuckGo" },
 ];
+
+/**
+ * 来源 URL → 搜索引擎名（百度/必应/谷歌等），非搜索引擎返回空串。
+ * 浏览器默认 referrer 策略下跨站只发 origin，关键词参数通常拿不到，
+ * 看板因此按搜索引擎维度统计，不再展示关键词明细。
+ */
+export function parseEngine(ref: string): string {
+  if (!ref) return "";
+  let u: URL;
+  try {
+    u = new URL(ref);
+  } catch {
+    return "";
+  }
+  return SEARCH_ENGINES.find((e) => e.host.test(u.hostname))?.name ?? "";
+}
 
 /** 来源 URL → 搜索关键词（百度 wd / 必应与谷歌 q 等），非搜索引擎返回空串 */
 export function parseKw(ref: string): string {
