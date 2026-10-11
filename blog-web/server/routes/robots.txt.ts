@@ -7,10 +7,7 @@ export default defineEventHandler((event) => {
     "Disallow: /admin",
     "Disallow: /api",
     "",
-    "# AI 训练爬虫：只屏蔽 Bytespider（字节，抓取最凶），放行 GPTBot / ClaudeBot / PerplexityBot 等",
-    "User-agent: Bytespider",
-    "Disallow: /",
-    "",
+    "# AI 训练爬虫已全放行（GPTBot / ClaudeBot / PerplexityBot / Bytespider 等）",
     `Sitemap: ${siteUrl}/sitemap.xml`,
     "",
   ].join("\n");
