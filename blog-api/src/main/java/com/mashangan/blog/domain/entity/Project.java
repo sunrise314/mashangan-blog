@@ -29,5 +29,8 @@ public class Project {
 
     private Integer sort;
 
+    /** 是否在前台展示；false 时不出现在行业详情页与项目落地页 */
+    private Boolean visible;
+
     private OffsetDateTime createdAt;
 }

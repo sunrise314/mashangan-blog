@@ -1,7 +1,7 @@
 <template>
-  <LayoutShell>
+  <div>
     <div class="topbar">
-      <h2>项目专栏</h2>
+      <h2>内容专栏</h2>
       <button class="btn btn-primary" @click="openNew">新建专栏</button>
     </div>
 
@@ -79,12 +79,11 @@
         </div>
       </div>
     </div>
-  </LayoutShell>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import LayoutShell from '../../components/LayoutShell.vue'
 import { seriesApi, type Series } from '../../api/series'
 
 const list = ref<Series[]>([])

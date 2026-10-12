@@ -1,0 +1,1 @@
+import{y as i}from"./index-Ce7ld6Gx.js";const r={list:()=>i("GET","/api/admin/series"),get:e=>i("GET",`/api/admin/series/${e}`),create:e=>i("POST","/api/admin/series",e),update:(e,s)=>i("PUT",`/api/admin/series/${e}`,s),delete:(e,s)=>i("DELETE",`/api/admin/series/${e}${s?"?force=true":""}`)};export{r as s};

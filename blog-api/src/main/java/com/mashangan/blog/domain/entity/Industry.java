@@ -22,5 +22,8 @@ public class Industry {
 
     private Integer sort;
 
+    /** 是否在前台展示；false 时不出现在 /column 行业列表与行业详情页 */
+    private Boolean visible;
+
     private OffsetDateTime createdAt;
 }

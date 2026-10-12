@@ -48,11 +48,13 @@ public class IndustryProjectService {
     /** 单个行业详情（含项目卡片），行业页使用 */
     public IndustryDetail getIndustryDetail(String slug) {
         Industry industry = industryMapper.selectOne(new QueryWrapper<Industry>().eq("slug", slug));
-        if (industry == null) {
+        if (industry == null || Boolean.FALSE.equals(industry.getVisible())) {
+            // 隐藏行业不在前台展示，直访 URL 也按 404 处理
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         List<Project> projects = projectMapper.selectList(new QueryWrapper<Project>()
                 .eq("industry_id", industry.getId())
+                .eq("visible", true)
                 .orderByAsc("sort")
                 .orderByAsc("id"));
         return toDetail(industry, projects);
@@ -61,12 +63,13 @@ public class IndustryProjectService {
     /** 项目详情（含考点清单），筹备中项目落地页使用 */
     public ProjectDetail getProjectDetail(String industrySlug, String projectSlug) {
         Project project = projectMapper.selectOne(new QueryWrapper<Project>().eq("slug", projectSlug));
-        if (project == null) {
+        if (project == null || Boolean.FALSE.equals(project.getVisible())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         Industry industry = industryMapper.selectById(project.getIndustryId());
-        if (industry == null || !industry.getSlug().equals(industrySlug)) {
-            // 行业与项目不匹配（避免同一项目在错误行业 URL 下被收录）
+        if (industry == null || Boolean.FALSE.equals(industry.getVisible())
+                || !industry.getSlug().equals(industrySlug)) {
+            // 行业与项目不匹配，或所属行业被隐藏（避免同一项目在错误行业 URL 下被收录）
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         Series series = project.getSeriesId() == null ? null
@@ -88,12 +91,14 @@ public class IndustryProjectService {
 
     private List<Industry> listIndustries() {
         return industryMapper.selectList(new QueryWrapper<Industry>()
+                .eq("visible", true)
                 .orderByAsc("sort")
                 .orderByAsc("id"));
     }
 
     private List<Project> listProjects() {
         return projectMapper.selectList(new QueryWrapper<Project>()
+                .eq("visible", true)
                 .orderByAsc("industry_id")
                 .orderByAsc("sort")
                 .orderByAsc("id"));
