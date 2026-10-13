@@ -32,6 +32,8 @@ app:
     # 生产环境必须通过 JWT_SECRET 环境变量覆盖
     secret: ${JWT_SECRET:dev-only-secret-change-me-please-32bytes-minimum!!}
     expire-minutes: ${JWT_EXPIRE_MINUTES:720}
+    # VIP 会员令牌有效期（天），默认一年
+    vip-expire-days: ${JWT_VIP_EXPIRE_DAYS:365}
   attachment:
     dir: ${ATTACHMENT_DIR:/data/attachments}
     max-size-bytes: 10485760

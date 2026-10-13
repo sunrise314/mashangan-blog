@@ -17,11 +17,14 @@ public class JwtService {
 
     private final SecretKey key;
     private final long expireMinutes;
+    private final long vipExpireDays;
 
     public JwtService(@Value("${app.jwt.secret}") String secret,
-                      @Value("${app.jwt.expire-minutes}") long expireMinutes) {
+                      @Value("${app.jwt.expire-minutes}") long expireMinutes,
+                      @Value("${app.jwt.vip-expire-days:365}") long vipExpireDays) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expireMinutes = expireMinutes;
+        this.vipExpireDays = vipExpireDays;
     }
 
     public String generate(Long userId, String username, String role) {
@@ -32,6 +35,22 @@ public class JwtService {
                 .claim("role", role)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(expireMinutes * 60)))
+                .signWith(key)
+                .compact();
+    }
+
+    /**
+     * VIP 会员令牌：role=vip（与 admin 隔离），sub=vip_members.id，长效默认 365 天。
+     * 冻结不靠令牌——每次正文解锁 /api/vip/me 都实时复查 vip_members.enabled。
+     */
+    public String generateVip(Long memberId, String nickname) {
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .subject(String.valueOf(memberId))
+                .claim("username", nickname)
+                .claim("role", "vip")
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plusSeconds(vipExpireDays * 86400)))
                 .signWith(key)
                 .compact();
     }

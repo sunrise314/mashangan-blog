@@ -23,7 +23,11 @@
         加入知识星球，解锁全部 {{ totalChapters }} 章
       </a>
       <div class="paywall-sub">
-        加入后永久可读 · 支持微信/支付宝
+        加入星球后使用置顶帖里的兑换码，在本站激活即可阅读全部章节
+      </div>
+      <div class="paywall-redeem">
+        已加入星球、还没激活？
+        <NuxtLink to="/vip">输入兑换码激活会员 →</NuxtLink>
       </div>
 
       <NuxtLink :to="`/column/${seriesSlug}`" class="paywall-back">
@@ -118,6 +122,19 @@ const joinUrl = zsxqConfig.joinUrl;
   margin-top: 12px;
   font-size: 12px;
   color: #94a3b8;
+}
+.paywall-redeem {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #64748b;
+}
+.paywall-redeem a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+.paywall-redeem a:hover {
+  text-decoration: underline;
 }
 .paywall-back {
   display: inline-block;

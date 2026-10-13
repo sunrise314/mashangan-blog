@@ -17,7 +17,7 @@
     <PostArticle
       v-if="!locked"
       :post="post"
-      :raw-content="post.content?.content || ''"
+      :raw-content="vipContent || post.content?.content || ''"
       :base-path="`/column/${series.slug}`"
       :prev-post="prevChapter"
       :next-post="nextChapter"
@@ -67,6 +67,7 @@ import type { HaloPost, HaloPostDetail, SeriesChapter, SeriesDetail } from "~/ty
 
 const route = useRoute();
 const { getSeriesDetail, getPostDetail } = useHaloApi();
+const { readToken } = useVip();
 
 const seriesSlug = route.params.seriesSlug as string;
 const postSlug = decodeSlug(route.params.postSlug as string);
@@ -93,7 +94,25 @@ if (!series.value || !currentChapter || !post.value) {
 }
 
 // 服务端闸门为准（access.locked），章节免费标记兜底
-const locked = computed(() => post.value?.access?.locked ?? !currentChapter?.free);
+const lockedBase = computed(() => post.value?.access?.locked ?? !currentChapter?.free);
+const vipContent = ref<string>("");
+const locked = computed(() => lockedBase.value && !vipContent.value);
+
+// VIP 会员解锁：SSR 匿名渲染（SWR 缓存共享）恒为锁定态，客户端挂载后带会员令牌重取正文，
+// 服务端 role=vip 校验通过才返回全文（令牌无效/已冻结保持锁定）
+onMounted(async () => {
+  if (!lockedBase.value || !currentChapter) return;
+  const token = readToken();
+  if (!token) return;
+  try {
+    const detail = await getPostDetail(currentChapter.name, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (detail.content?.content) vipContent.value = detail.content.content;
+  } catch {
+    /* 令牌无效保持锁定 */
+  }
+});
 
 // 相邻章节导航（锁定章节也作为入口，阅读页会展示付费墙）
 const prevChapter = computed<HaloPost | undefined>(() => {

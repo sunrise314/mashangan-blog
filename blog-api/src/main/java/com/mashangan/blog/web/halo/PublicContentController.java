@@ -11,6 +11,7 @@ import com.mashangan.blog.service.PostQueryService;
 import com.mashangan.blog.service.SeriesQueryService;
 import com.mashangan.blog.service.SinglePageQueryService;
 import com.mashangan.blog.service.TagQueryService;
+import com.mashangan.blog.service.VipService;
 import com.mashangan.blog.web.halo.dto.HaloCategory;
 import com.mashangan.blog.web.halo.dto.HaloPageResult;
 import com.mashangan.blog.web.halo.dto.HaloPost;
@@ -46,6 +47,7 @@ public class PublicContentController {
     private final SeriesQueryService seriesQueryService;
     private final TagQueryService tagQueryService;
     private final IndustryProjectService industryProjectService;
+    private final VipService vipService;
 
     /** 项目实战卡片列表（一个卡片 = 一个系列/项目） */
     @GetMapping("/series")
@@ -103,13 +105,15 @@ public class PublicContentController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         HaloPost.Detail detail = postQueryService.toHaloDetail(post);
-        // 付费墙：锁定章节剥离正文，仅返回摘要 + access 标记（服务端兜底，前端无法绕过）
+        // 付费墙：锁定章节剥离正文，仅返回摘要 + access 标记（服务端兜底，前端无法绕过）；
+        // 有效 VIP 会员（role=vip 且未冻结）跳过付费墙
         SeriesQueryService.ChapterAccess access = seriesQueryService.accessOf(post);
         if (access == null) return detail;
-        var accessDto = new HaloPost.Access(access.locked(), access.seriesSlug(),
+        boolean locked = access.locked() && !vipService.currentRequestIsVip();
+        var accessDto = new HaloPost.Access(locked, access.seriesSlug(),
                 access.seriesTitle(), access.freeChapterCount(),
                 access.chapterOrder(), access.totalChapters());
-        if (!access.locked()) {
+        if (!locked) {
             return new HaloPost.Detail(detail.metadata(), detail.spec(), detail.status(),
                     detail.categories(), detail.tags(), detail.content(), accessDto);
         }

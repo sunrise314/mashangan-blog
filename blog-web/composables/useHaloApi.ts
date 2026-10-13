@@ -34,10 +34,14 @@ export function useHaloApi() {
     ? (process.env.IMG_CDN_BASE || "").replace(/\/$/, "")
     : ((useRuntimeConfig().public.imgCdnBase as string) || "").replace(/\/$/, "");
 
-  async function apiFetch<T>(path: string, apiBase: string = CONTENT_API_BASE): Promise<T> {
+  async function apiFetch<T>(
+    path: string,
+    apiBase: string = CONTENT_API_BASE,
+    headers: Record<string, string> = {},
+  ): Promise<T> {
     const url = `${base}${apiBase}${path}`;
     const data = await $fetch<T>(url, {
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json", ...headers },
     });
     // 数据出口统一改写图片地址为 CDN（覆盖 SSR 与客户端 SPA 导航两条路径）
     return cdnizeDeep(data, imgCdnBase);
@@ -148,9 +152,12 @@ export function useHaloApi() {
     return items.filter((post) => !post.spec.categories?.some((name) => excluded.has(name)));
   }
 
-  /** 获取单篇文章详情（含正文） */
-  async function getPostDetail(postName: string): Promise<HaloPostDetail> {
-    return await apiFetch<HaloPostDetail>(`/posts/${postName}`);
+  /** 获取单篇文章详情（含正文）；headers 可携带 VIP 会员令牌用于付费墙解锁 */
+  async function getPostDetail(
+    postName: string,
+    options: { headers?: Record<string, string> } = {},
+  ): Promise<HaloPostDetail> {
+    return await apiFetch<HaloPostDetail>(`/posts/${postName}`, CONTENT_API_BASE, options.headers);
   }
 
   /** 获取全部已发布独立页面 */
