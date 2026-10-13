@@ -190,6 +190,11 @@ public class StudioService {
             PostResponse existing = findBySlug(slug);
             PostResponse saved;
             if (existing != null) {
+                // 重发覆盖：保留原有系列归属与单章免费覆盖，避免连载付费墙/章序被重置
+                req = new PostRequest(req.title(), req.slug(), req.cover(), req.content(),
+                        req.excerpt(), req.categories(), req.tags(), req.published(), req.pinned(),
+                        req.priority(), req.visible(), req.allowComment(),
+                        existing.seriesId(), existing.freeOverride());
                 saved = adminPosts.update(existing.id(), req);
                 task.warnings.add("已存在相同 slug 的文章，内容已被覆盖：" + slug);
             } else {
