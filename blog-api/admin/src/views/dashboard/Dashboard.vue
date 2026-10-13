@@ -152,7 +152,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import LayoutShell from '../../components/LayoutShell.vue'
 import TopList from './TopList.vue'
-import { useAuth } from '../../composables/useAuth'
+import { api } from '../../api/client'
 
 interface PvUv { pv: number; uv: number }
 interface TopRow { k: string; c: number }
@@ -182,7 +182,6 @@ interface Summary {
   topRegions?: TopRow[]
 }
 
-const { getAnalyticsToken } = useAuth()
 const summary = ref<Summary | null>(null)
 const loadErr = ref('')
 const vidQuery = ref('')
@@ -213,55 +212,42 @@ const shortPath = (p: string, n = 28) => (p.length > n ? `${p.slice(0, n)}…` :
 
 const maxTrendPv = computed(() => Math.max(1, ...(summary.value?.trend ?? []).map(t => t.pv)))
 
-async function fetchJson<T>(url: string): Promise<{ ok: boolean; status: number; data: T | null }> {
-  try {
-    const res = await fetch(url, { headers: { 'x-analytics-token': getAnalyticsToken() } })
-    const data = res.status === 204 ? null : await res.json().catch(() => null)
-    return { ok: res.ok, status: res.status, data }
-  } catch {
-    return { ok: false, status: 0, data: null }
-  }
-}
-
 async function load() {
   loadErr.value = ''
-  const r = await fetchJson<Summary>('/api/analytics/summary')
-  if (r.status === 401) {
-    loadErr.value = '看板接口未授权（请重新登录后台）'
-    return
+  try {
+    const data = await api<Summary>('GET', '/api/admin/analytics/summary')
+    if (data.enabled === false) {
+      loadErr.value = '分析服务未启用（未配置 ANALYTICS_PG）'
+      return
+    }
+    summary.value = data
+  } catch (e: any) {
+    if (e.message !== '未授权') loadErr.value = '加载失败，请稍后重试'
   }
-  if (!r.ok || !r.data) {
-    loadErr.value = '加载失败，请稍后重试'
-    return
-  }
-  if (r.data.enabled === false) {
-    loadErr.value = '分析服务未启用（未配置 ANALYTICS_PG）'
-    return
-  }
-  summary.value = r.data
 }
 
 async function loadRecent() {
   recentLoading.value = true
   recentErr.value = ''
-  const r = await fetchJson<{ enabled: boolean; total: number; visits: RecentRow[] }>(
-    `/api/analytics/visits?page=${recentPage.value}&size=${recentSize}`,
-  )
-  recentLoading.value = false
-  if (r.status === 401) {
-    recentErr.value = '看板接口未授权（请重新登录后台）'
-    return
-  }
-  if (!r.ok || !r.data || r.data.enabled === false) {
-    recentErr.value = '加载失败，请稍后重试'
-    return
-  }
-  recentRows.value = r.data.visits ?? []
-  recentTotal.value = r.data.total ?? 0
-  // 数据减少导致当前页越界时，回退到最后一页重新拉取
-  if (recentPage.value > recentPages.value) {
-    recentPage.value = recentPages.value
-    loadRecent()
+  try {
+    const data = await api<{ enabled: boolean; total: number; visits: RecentRow[] }>(
+      'GET', `/api/admin/analytics/visits?page=${recentPage.value}&size=${recentSize}`,
+    )
+    if (data.enabled === false) {
+      recentErr.value = '分析服务未启用（未配置 ANALYTICS_PG）'
+      return
+    }
+    recentRows.value = data.visits ?? []
+    recentTotal.value = data.total ?? 0
+    // 数据减少导致当前页越界时，回退到最后一页重新拉取
+    if (recentPage.value > recentPages.value) {
+      recentPage.value = recentPages.value
+      loadRecent()
+    }
+  } catch (e: any) {
+    if (e.message !== '未授权') recentErr.value = '加载失败，请稍后重试'
+  } finally {
+    recentLoading.value = false
   }
 }
 
@@ -269,15 +255,16 @@ async function queryVid() {
   const vid = vidQuery.value.trim()
   if (!vid) return
   vidLoading.value = true
-  const r = await fetchJson<{ enabled: boolean; visits: VisitRow[] }>(
-    `/api/analytics/visitor/${encodeURIComponent(vid)}`,
-  )
-  vidLoading.value = false
-  if (r.status === 401) {
-    loadErr.value = '看板接口未授权'
-    return
+  try {
+    const data = await api<{ enabled: boolean; visits: VisitRow[] }>(
+      'GET', `/api/admin/analytics/visitor/${encodeURIComponent(vid)}`,
+    )
+    vidVisits.value = data.visits ?? []
+  } catch (e: any) {
+    if (e.message !== '未授权') vidVisits.value = []
+  } finally {
+    vidLoading.value = false
   }
-  vidVisits.value = r.data?.visits ?? []
 }
 
 let timer: ReturnType<typeof setInterval> | null = null
