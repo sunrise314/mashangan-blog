@@ -18,6 +18,7 @@ const routes = [
   { path: '/admin/attachments', component: () => import('../views/attachments/AttachmentList.vue') },
   { path: '/admin/menus', component: () => import('../views/menus/MenuManager.vue') },
   { path: '/admin/site-config', component: () => import('../views/site-config/SiteConfig.vue') },
+  { path: '/admin/password', component: () => import('../views/settings/PasswordChange.vue') },
   { path: '/admin/social-links', component: () => import('../views/social-links/SocialLinkList.vue') },
   { path: '/admin/studio', component: () => import('../views/studio/StudioSubmit.vue') },
   { path: '/admin/studio-config', component: () => import('../views/studio/AiConfig.vue') },
