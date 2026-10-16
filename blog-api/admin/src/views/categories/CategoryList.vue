@@ -25,7 +25,7 @@
             <th>名称</th>
             <th>slug</th>
             <th>栏目分区</th>
-            <th>隐藏列表</th>
+            <th>首页显示</th>
             <th v-if="!sortMode" style="width:140px">操作</th>
           </tr>
         </thead>
@@ -55,7 +55,16 @@
                 <span v-if="c.section" class="badge badge-on">{{ c.section }}</span>
                 <span v-else style="color:#aaa">通用</span>
               </td>
-              <td><span class="badge" :class="c.hideFromList ? 'badge-off' : 'badge-on'">{{ c.hideFromList ? '隐藏' : '显示' }}</span></td>
+              <td>
+                <button class="badge" :style="{
+                  background: c.hideFromList ? '#f1f5f9' : '#dcfce7',
+                  color: c.hideFromList ? '#64748b' : '#15803d',
+                  border: '1px solid ' + (c.hideFromList ? '#e2e8f0' : '#86efac'),
+                  cursor: 'pointer'
+                }" @click="toggleHideFromList(c)" :title="c.hideFromList ? '点击在首页展示' : '点击从首页隐藏'">
+                  {{ c.hideFromList ? '已隐藏' : '展示中' }}
+                </button>
+              </td>
               <td v-if="!sortMode">
                 <button class="btn btn-sm btn-ghost" @click="openEdit(c)">编辑</button>
                 <button class="btn btn-sm btn-danger" @click="doDelete(c.id!)">删除</button>
@@ -111,7 +120,14 @@
         <h3 style="margin-bottom:12px">{{ editing.id ? '编辑分类' : '新建分类' }}</h3>
         <div class="form-row"><label>显示名称</label><input v-model="form.displayName"></div>
         <div class="form-row"><label>slug（URL 用）</label><input v-model="form.slug"></div>
-        <div class="form-row"><label>封面图 URL</label><input v-model="form.cover"></div>
+        <div class="form-row">
+          <label>封面图</label>
+          <CoverPicker
+            :model-value="form.cover ?? ''"
+            @update:model-value="form.cover = $event"
+            @error="error = $event"
+          />
+        </div>
         <div class="form-row"><label>描述</label><textarea v-model="form.description" rows="2"></textarea></div>
         <div class="grid-2">
           <div class="form-row"><label>排序（越大越靠前）</label><input type="number" v-model.number="form.priority"></div>
@@ -150,6 +166,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LayoutShell from '../../components/LayoutShell.vue'
+import CoverPicker from '../../components/CoverPicker.vue'
 import { categoriesApi, type Category, type CategoryPostSummary } from '../../api/categories'
 import { postsApi } from '../../api/posts'
 
@@ -245,6 +262,19 @@ function toggleExpand(c: Category) {
   if (next.has(id)) next.delete(id)
   else { next.add(id); loadPosts(id) }
   expanded.value = next
+}
+
+/** 列表行直接切换首页显示（复用 hideFromList 字段，传完整对象避免覆盖） */
+async function toggleHideFromList(c: Category) {
+  error.value = ''; saved.value = ''
+  if (!c.id) return
+  const next = !c.hideFromList
+  try {
+    await categoriesApi.update(c.id, { ...c, hideFromList: next })
+    c.hideFromList = next
+    saved.value = next ? '已从首页隐藏' : '已在首页展示'
+    setTimeout(() => { if (saved.value === (next ? '已从首页隐藏' : '已在首页展示')) saved.value = '' }, 2000)
+  } catch (e: any) { error.value = e.message }
 }
 
 function editPost(p: CategoryPostSummary) {

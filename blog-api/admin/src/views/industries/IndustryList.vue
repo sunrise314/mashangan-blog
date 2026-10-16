@@ -1,7 +1,7 @@
 <template>
-  <LayoutShell>
+  <div>
     <div class="topbar">
-      <h2>行业管理</h2>
+      <h2>行业</h2>
       <button class="btn btn-primary" @click="openNew">新建行业</button>
     </div>
 
@@ -70,12 +70,11 @@
         </div>
       </div>
     </div>
-  </LayoutShell>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import LayoutShell from '../../components/LayoutShell.vue'
 import { industriesApi, type Industry } from '../../api/projects'
 
 const list = ref<Industry[]>([])

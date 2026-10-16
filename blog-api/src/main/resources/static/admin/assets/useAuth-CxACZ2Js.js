@@ -1,0 +1,1 @@
+import{P as a,Q as s,R as r,r as u,S as l}from"./index-CXNsVhBC.js";const e=u(l());function i(){return{token:e,isLoggedIn:()=>!!e.value,login:async(n,t)=>{const o=await s(n,t);r(o.token),e.value=o.token},logout:()=>{a(),e.value=""}}}export{i as u};

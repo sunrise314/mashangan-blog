@@ -58,7 +58,14 @@
         <h3 style="margin-bottom:12px">{{ editing.id ? '编辑专栏' : '新建专栏' }}</h3>
         <div class="form-row"><label>标题</label><input v-model="form.title" placeholder="如：StarLab：LEO 卫星互联网仿真实战"></div>
         <div class="form-row"><label>slug（URL 用，/column/{slug}）</label><input v-model="form.slug"></div>
-        <div class="form-row"><label>封面图 URL</label><input v-model="form.cover"></div>
+        <div class="form-row">
+          <label>封面图</label>
+          <CoverPicker
+            :model-value="form.cover ?? ''"
+            @update:model-value="form.cover = $event"
+            @error="error = $event"
+          />
+        </div>
         <div class="form-row"><label>简介</label><textarea v-model="form.description" rows="3"></textarea></div>
         <div class="grid-2">
           <div class="form-row">
@@ -84,6 +91,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import CoverPicker from '../../components/CoverPicker.vue'
 import { seriesApi, type Series } from '../../api/series'
 
 const list = ref<Series[]>([])

@@ -3,9 +3,11 @@
     <div class="tabbar">
       <button :class="['tab', tab === 'projects' ? 'tab-active' : '']" @click="switchTab('projects')">项目卡片</button>
       <button :class="['tab', tab === 'series' ? 'tab-active' : '']" @click="switchTab('series')">内容专栏</button>
+      <button :class="['tab', tab === 'industries' ? 'tab-active' : '']" @click="switchTab('industries')">行业</button>
     </div>
     <ProjectList v-if="tab === 'projects'" />
-    <SeriesList v-else />
+    <SeriesList v-else-if="tab === 'series'" />
+    <IndustryList v-else />
   </LayoutShell>
 </template>
 
@@ -15,15 +17,22 @@ import { useRoute, useRouter } from 'vue-router'
 import LayoutShell from '../../components/LayoutShell.vue'
 import ProjectList from '../projects/ProjectList.vue'
 import SeriesList from '../series/SeriesList.vue'
+import IndustryList from '../industries/IndustryList.vue'
 
 const route = useRoute()
 const router = useRouter()
 
-/** tab 跟随路由：/admin/series = 内容专栏，其余（/admin/projects）= 项目卡片 */
-const tab = computed(() => (route.path.startsWith('/admin/series') ? 'series' : 'projects'))
+/** tab 跟随路由：/admin/series = 内容专栏，/admin/industries = 行业，其余（/admin/projects）= 项目卡片 */
+const tab = computed<'projects' | 'series' | 'industries'>(() => {
+  if (route.path.startsWith('/admin/series')) return 'series'
+  if (route.path.startsWith('/admin/industries')) return 'industries'
+  return 'projects'
+})
 
-function switchTab(t: 'projects' | 'series') {
-  router.push(t === 'series' ? '/admin/series' : '/admin/projects')
+function switchTab(t: 'projects' | 'series' | 'industries') {
+  if (t === 'series') router.push('/admin/series')
+  else if (t === 'industries') router.push('/admin/industries')
+  else router.push('/admin/projects')
 }
 </script>
 

@@ -55,26 +55,12 @@
           </div>
           <div class="form-row">
             <label>封面图</label>
-            <div class="cover-picker">
-              <div class="cover-preview" v-if="form.cover" @dragover.prevent @drop.prevent="onCoverDrop">
-                <img :src="form.cover" @error="onCoverError" :class="{ broken: coverBroken }" />
-                <div class="cover-uploading" v-if="coverUploading">封面上传中…</div>
-              </div>
-              <div class="cover-empty" v-else :class="{ dragover: coverDragover }" @click="coverFile?.click()" @dragover.prevent="coverDragover=true" @dragleave="coverDragover=false" @drop.prevent="coverDragover=false; onCoverDrop($event)">
-                <span v-if="!coverUploading">＋ 点击上传 / Ctrl+V 粘贴 / 拖拽图片</span>
-                <span v-else>封面上传中…</span>
-              </div>
-              <div class="cover-toolbar">
-                <button class="btn btn-sm btn-primary" @click="coverFile?.click()" :disabled="coverUploading">
-                  {{ coverUploading ? '上传中…' : '上传' }}
-                </button>
-                <button class="btn btn-sm btn-ghost" @click="openPicker" :disabled="picker.loading">从附件库选</button>
-                <button class="btn btn-sm btn-ghost" v-if="form.cover" @click="clearCover">移除</button>
-              </div>
-              <input v-model="form.cover" placeholder="或粘贴图片 URL https://…" class="cover-url-input" @input="coverBroken=false" />
-              <div class="cover-hint">编辑器外按 Ctrl+V 即可把剪贴板图片设为封面；不设置时保存后自动采用文章第一张图</div>
-              <input ref="coverFile" type="file" accept="image/*" style="display:none" @change="onCoverUpload" />
-            </div>
+            <CoverPicker
+              :model-value="form.cover"
+              @update:model-value="form.cover = $event"
+              @error="error = $event"
+              hint="编辑器外按 Ctrl+V 即可把剪贴板图片设为封面；不设置时保存后自动采用文章第一张图"
+            />
           </div>
           <div class="form-row">
             <label>摘要</label>
@@ -145,32 +131,11 @@
         </div>
       </div>
     </div>
-
-    <!-- 附件库选择器 -->
-    <div v-if="picker.show" class="modal-overlay" @click.self="picker.show=false">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>从附件库选择图片</h3>
-          <button class="modal-close" @click="picker.show=false">×</button>
-        </div>
-        <div class="modal-body">
-          <div v-if="picker.loading" class="modal-empty">加载中…</div>
-          <div v-else-if="picker.list.length" class="attachment-grid">
-            <div v-for="a in picker.list" :key="a.id" class="attachment-item" @click="pickFromLib(a)">
-              <img v-if="isImage(a)" :src="a.urlPath" loading="lazy" />
-              <div v-else class="attachment-noimg">{{ a.contentType || '文件' }}</div>
-              <div class="attachment-name">{{ a.originalName }}</div>
-            </div>
-          </div>
-          <div v-else class="modal-empty">附件库为空，请先到「附件库」页面上传图片</div>
-        </div>
-      </div>
-    </div>
   </LayoutShell>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -184,12 +149,12 @@ import TableHeader from '@tiptap/extension-table-header'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { marked } from 'marked'
 import LayoutShell from '../../components/LayoutShell.vue'
+import CoverPicker from '../../components/CoverPicker.vue'
 import lowlight from '../../components/editor/lowlight'
 import { htmlToMarkdown } from '../../components/editor/htmlToMarkdown'
 import { postsApi } from '../../api/posts'
 import { seriesApi, type Series } from '../../api/series'
 import { categoriesApi, type Category } from '../../api/categories'
-import { attachmentsApi, type Attachment } from '../../api/attachments'
 import { api, uploadFile } from '../../api/client'
 
 const route = useRoute()
@@ -224,89 +189,8 @@ const saving = ref(false)
 const saved = ref(false)
 const error = ref('')
 
-// 封面图上传
-const coverFile = ref<HTMLInputElement>()
-const coverUploading = ref(false)
-const coverBroken = ref(false)
-const coverDragover = ref(false)
-
 // 编辑器图片上传
 const editorUploading = ref(false)
-
-// 附件库选择器
-const picker = ref<{ show: boolean; loading: boolean; list: Attachment[] }>({
-  show: false, loading: false, list: [],
-})
-
-function onCoverError() { coverBroken.value = true }
-function clearCover() { form.value.cover = ''; coverBroken.value = false }
-
-async function setCoverFromBlob(f: File) {
-  coverUploading.value = true
-  error.value = ''
-  try {
-    const att = await uploadFile('/api/admin/attachments/upload', f)
-    form.value.cover = att.urlPath
-    coverBroken.value = false
-  } catch (err: any) {
-    error.value = '封面上传失败：' + err.message
-  } finally {
-    coverUploading.value = false
-  }
-}
-
-async function onCoverUpload(e: Event) {
-  const input = e.target as HTMLInputElement
-  const f = input.files?.[0]
-  if (!f) return
-  await setCoverFromBlob(f)
-  input.value = ''
-}
-
-function onCoverDrop(e: DragEvent) {
-  const f = Array.from(e.dataTransfer?.files || []).find(f => f.type.startsWith('image/'))
-  if (f) setCoverFromBlob(f)
-}
-
-// 编辑器外按 Ctrl+V：剪贴板图片直接设为封面
-function onGlobalPaste(e: ClipboardEvent) {
-  if (editor.value?.isFocused) return
-  const hasText = !!(e.clipboardData?.getData('text/plain') || '').trim()
-  const target = e.target as HTMLElement | null
-  const isTextField = !!target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')
-  if (hasText && isTextField) return
-  for (const it of e.clipboardData?.items || []) {
-    if (it.type.startsWith('image/')) {
-      const f = it.getAsFile()
-      if (f) {
-        e.preventDefault()
-        setCoverFromBlob(f)
-      }
-      return
-    }
-  }
-}
-onMounted(() => document.addEventListener('paste', onGlobalPaste))
-
-async function openPicker() {
-  picker.value.show = true
-  picker.value.loading = true
-  try {
-    picker.value.list = await attachmentsApi.list()
-  } catch (err: any) {
-    error.value = '附件列表加载失败：' + err.message
-  } finally {
-    picker.value.loading = false
-  }
-}
-
-function pickFromLib(a: Attachment) {
-  form.value.cover = a.urlPath
-  coverBroken.value = false
-  picker.value.show = false
-}
-
-function isImage(a: Attachment) { return (a.contentType || '').startsWith('image/') }
 
 const editor = useEditor({
   extensions: [
@@ -436,7 +320,6 @@ async function save(publish: boolean) {
 
 onBeforeUnmount(() => {
   editor.value?.destroy()
-  document.removeEventListener('paste', onGlobalPaste)
 })
 
 ;(async () => {
